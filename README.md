@@ -1,5 +1,14 @@
 # 编程助手 Skill - 使用指南
 
+> ⚠️ **重要更新**: OpenCode Skills 正确配置路径（2026-01-14）
+> 
+> 根据 [OpenCode 官方文档](https://opencode.ai/docs/skills/)：
+> - ✅ **正确路径**: `~/.config/opencode/skill/<name>/SKILL.md`
+> - ❌ **错误路径**: `~/.opencode/skills/`（注意 `config` 和单数 `skill`）
+> 
+> 详细说明：
+> - OpenCode 用户请查看: [OPENCODE-SKILLS-正确配置.md](OPENCODE-SKILLS-正确配置.md)
+> - Cursor 用户请查看: [QUICK-START.md](QUICK-START.md#如果你使用cursor)
 
 ## 概述
 
@@ -25,24 +34,42 @@
 
 ## 快速开始
 
-### 推荐方式：一键安装（支持 OpenCode 和 Cursor）
+### 一键安装（推荐）
 
 ```bash
+# 完整安装（OpenCode + Cursor + MCP）
 ./install.sh --all --with-mcp
 ```
 
 这将自动：
-1. 安装到 OpenCode（全局）
-2. 安装到 Cursor（全局规则）
-3. 配置 MCP 服务器
-4. 验证安装结果
+1. ✅ 安装到 OpenCode（全局 skill）
+2. ✅ 安装到 Cursor（全局规则）
+3. ✅ 配置 MCP 服务器
+4. ✅ 验证安装结果
 
-查看 [QUICK-START.md](QUICK-START.md) 了解详细的安装选项
+**完成后重启 OpenCode 和 Cursor 即可使用！**
 
-### 传统安装方式
+### OpenCode 用户（仅安装 OpenCode）
 
-查看 [QUICK-START.md](QUICK-START.md) 了解如何在5分钟内完成手动安装和配置
+```bash
+./install.sh --opencode --with-mcp
 ```
+
+安装到: `~/.config/opencode/skill/programming-assistant/SKILL.md`
+
+### Cursor 用户（仅安装 Cursor）
+
+```bash
+./install.sh --cursor --with-mcp
+```
+
+安装到: `~/.cursor/rules/programming-assistant.md`
+
+### 详细文档
+
+- **快速开始**: [QUICK-START.md](QUICK-START.md)
+- **OpenCode 正确配置**: [OPENCODE-SKILLS-正确配置.md](OPENCODE-SKILLS-正确配置.md)
+- **Skill 详细说明**: [SKILL.md](SKILL.md)
 
 
 ## 工作流程

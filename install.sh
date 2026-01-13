@@ -29,8 +29,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
 VERSION="1.0.0"
 
-# OpenCode 路径
-OPENCODE_SKILLS_DIR="$HOME/.opencode/skills"
+# OpenCode 路径（官方文档：https://opencode.ai/docs/skills/）
+OPENCODE_SKILLS_DIR="$HOME/.config/opencode/skill"
 OPENCODE_SKILL_DIR="$OPENCODE_SKILLS_DIR/programming-assistant"
 OPENCODE_SKILL_FILE="$OPENCODE_SKILL_DIR/SKILL.md"
 

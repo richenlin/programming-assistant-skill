@@ -41,28 +41,67 @@
 
 #### 如果你使用OpenCode
 
+> 📚 参考: [OpenCode Skills 官方文档](https://opencode.ai/docs/skills/)
+
 **一键安装（推荐）**：
 ```bash
 ./install.sh --opencode --with-mcp
 ```
 
+这将自动：
+1. ✅ 安装 skill 到 `~/.config/opencode/skill/programming-assistant/`
+2. ✅ 配置 MCP 服务器
+3. ✅ 验证安装结果
+
 **手动安装**：
 ```bash
-# 创建skills目录（如果不存在）
-mkdir -p ~/.opencode/skills/programming-assistant
+# 创建全局 skill 目录（注意路径）
+mkdir -p ~/.config/opencode/skill/programming-assistant
 
-# 复制SKILL.md到规范目录
-cp SKILL.md ~/.opencode/skills/programming-assistant/
+# 复制 SKILL.md
+cp SKILL.md ~/.config/opencode/skill/programming-assistant/
 
-# 配置MCP服务器（可选）
-opencode mcp add context7 -- npx -y @upstash/context7-mcp
-opencode mcp add sequential-thinking -- npx -y @modelcontextprotocol/server-sequential-thinking
-opencode mcp add mcp-feedback-enhanced -- uvx mcp-feedback-enhanced@latest
+# 配置 MCP 服务器（可选）
+mkdir -p ~/.config/opencode
+cat > ~/.config/opencode/opencode.json << 'EOF'
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "mcp-feedback-enhanced": {
+      "command": "uvx",
+      "args": ["mcp-feedback-enhanced@latest"]
+    }
+  }
+}
+EOF
 
-# 重启OpenCode以使更改生效
+# 重启 OpenCode
 ```
 
-**重要提示**: 完成安装后，必须**完全重启OpenCode**才能使skill生效。
+**项目级安装**（如果需要项目特定配置）：
+```bash
+# 在项目根目录
+cd /your/project
+
+# 创建项目 skill 目录
+mkdir -p .opencode/skill/programming-assistant
+
+# 复制 SKILL.md
+cp /path/to/SKILL.md .opencode/skill/programming-assistant/
+```
+
+**重要提示**: 
+- ✅ 全局路径: `~/.config/opencode/skill/<name>/SKILL.md`
+- ✅ 项目路径: `.opencode/skill/<name>/SKILL.md`
+- ❌ 错误路径: `~/.opencode/skills/`（注意不是这个！）
+- 📖 详细说明: [OPENCODE-SKILLS-正确配置.md](OPENCODE-SKILLS-正确配置.md)
 
 #### 如果你使用Cursor
 
@@ -139,24 +178,94 @@ cp SKILL.md ~/.cursor/rules/programming-assistant.md
 
 ## 在OpenCode中使用
 
+> 📚 官方文档: https://opencode.ai/docs/skills/
+
 ### 使用方法
 
-在OpenCode中，你可以通过以下方式激活skill：
+安装完成后，**重启 OpenCode**，skill 会自动加载：
+
+```bash
+opencode
 ```
-/programming-assistant
-或
-编程助手
+
+OpenCode 会自动发现可用的 skills，Agent 会在需要时调用：
+```javascript
+skill({ name: "programming-assistant" })
 ```
+
+您也可以在对话中明确提示：
+```
+使用 programming-assistant skill 帮我开发一个 API 服务
+```
+
+### 验证安装
+
+**方法 1: 检查文件**
+```bash
+# 检查全局 skill
+ls -la ~/.config/opencode/skill/programming-assistant/SKILL.md
+
+# 检查 frontmatter
+head -15 ~/.config/opencode/skill/programming-assistant/SKILL.md
+```
+
+**方法 2: 启动 OpenCode**
+
+启动后，Agent 应该能看到 `programming-assistant` 在可用 skills 列表中。
 
 ### 故障排查
 
-如果激活后MCP工具（context7、sequential-thinking、mcp-feedback-enhanced）无法使用，可以尝试手动注册：
+**问题1: Skill 没有出现**
+
+检查清单：
+1. ✅ 文件名是 `SKILL.md`（全大写）
+2. ✅ 路径正确: `~/.config/opencode/skill/programming-assistant/SKILL.md`
+3. ✅ frontmatter 包含 `name` 和 `description`
+4. ✅ `name` 值为 `programming-assistant`（匹配目录名）
+5. ✅ 已重启 OpenCode
+
+**问题2: 路径错误**
+
+❌ 错误路径:
+- `~/.opencode/skills/` (缺少 `config`，且 `skills` 是复数)
+- `~/.opencode/skill/`  (缺少 `config`)
+
+✅ 正确路径:
+- `~/.config/opencode/skill/programming-assistant/SKILL.md`
+
+**问题3: MCP 工具无法使用**
+
+MCP 服务器需要单独配置（不包含在 skill 中）：
+
 ```bash
-# 手动注册 MCP 服务器
-opencode mcp add context7 npx -y @upstash/context7-mcp
-opencode mcp add sequential-thinking npx -y @modelcontextprotocol/server-sequential-thinking
-opencode mcp add mcp-feedback-enhanced uvx mcp-feedback-enhanced@latest
+# 创建全局 MCP 配置
+mkdir -p ~/.config/opencode
+cat > ~/.config/opencode/opencode.json << 'EOF'
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "mcp-feedback-enhanced": {
+      "command": "uvx",
+      "args": ["mcp-feedback-enhanced@latest"]
+    }
+  }
+}
+EOF
 ```
+
+或使用安装脚本：
+```bash
+./install.sh --opencode --with-mcp
+```
+
+详细说明请查看 [OPENCODE-SKILLS-正确配置.md](OPENCODE-SKILLS-正确配置.md)。
 
 ## 在Cursor中使用
 
