@@ -34,18 +34,20 @@ OPENCODE_SKILLS_DIR="$HOME/.config/opencode/skill"
 OPENCODE_SKILL_DIR="$OPENCODE_SKILLS_DIR/programming-assistant"
 OPENCODE_SKILL_FILE="$OPENCODE_SKILL_DIR/SKILL.md"
 
-# Cursor 路径
-CURSOR_DIR="$HOME/.cursor"
-CURSOR_RULES_DIR="$CURSOR_DIR/rules"
-CURSOR_RULE_FILE="$CURSOR_RULES_DIR/programming-assistant.md"
+# Cursor 路径（使用 Claude 兼容路径）
+CURSOR_DIR="$HOME/.cursor"  # Cursor 主目录（用于检测和 MCP 配置）
+CURSOR_SKILLS_DIR="$HOME/.claude/skills"  # Skills 存放目录
+CURSOR_SKILL_DIR="$CURSOR_SKILLS_DIR/programming-assistant"
+CURSOR_SKILL_FILE="$CURSOR_SKILL_DIR/SKILL.md"
 
 # 源文件
 SOURCE_SKILL_FILE="$SCRIPT_DIR/SKILL.md"
 SOURCE_LEGACY_SKILL_FILE="$SCRIPT_DIR/programming-assistant.skill.md"
 SOURCE_TEMPLATES_DIR="$SCRIPT_DIR/templates"
 
-# 备份目录
-BACKUP_DIR="$SCRIPT_DIR/.backup"
+# 备份目录（按源目录分类）
+OPENCODE_BACKUP_DIR="$HOME/.config/opencode/skill/.backup"
+CURSOR_BACKUP_DIR="$HOME/.claude/skills/.backup"
 BACKUP_TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
 # 颜色输出
@@ -107,11 +109,22 @@ confirm() {
 }
 
 # 创建备份
+# 参数: $1 - 要备份的文件, $2 - 备份类型 (opencode|cursor)
 backup_file() {
     local file="$1"
+    local backup_type="${2:-opencode}"
+    
     if [ -f "$file" ]; then
-        mkdir -p "$BACKUP_DIR"
-        local backup_file="$BACKUP_DIR/$(basename "$file").$BACKUP_TIMESTAMP"
+        # 根据类型选择备份目录
+        local backup_dir
+        if [ "$backup_type" = "cursor" ]; then
+            backup_dir="$CURSOR_BACKUP_DIR"
+        else
+            backup_dir="$OPENCODE_BACKUP_DIR"
+        fi
+        
+        mkdir -p "$backup_dir"
+        local backup_file="$backup_dir/$(basename "$file").$BACKUP_TIMESTAMP"
         cp "$file" "$backup_file"
         info "已备份: $file -> $backup_file"
     fi
@@ -177,7 +190,7 @@ install_opencode_skill() {
             return 1
         fi
 
-        backup_file "$OPENCODE_SKILL_FILE"
+        backup_file "$OPENCODE_SKILL_FILE" "opencode"
     fi
 
     if [ "$DRY_RUN" = true ]; then
@@ -276,10 +289,10 @@ install_cursor_skill() {
     info "安装 Cursor Skill..."
 
     # 检查是否覆盖
-    if [ -f "$CURSOR_RULE_FILE" ]; then
-        warn "目标文件已存在: $CURSOR_RULE_FILE"
+    if [ -f "$CURSOR_SKILL_FILE" ]; then
+        warn "目标文件已存在: $CURSOR_SKILL_FILE"
         if [ "$DRY_RUN" = true ]; then
-            info "DRY-RUN: 将覆盖 $CURSOR_RULE_FILE"
+            info "DRY-RUN: 将覆盖 $CURSOR_SKILL_FILE"
             return 0
         fi
 
@@ -288,37 +301,39 @@ install_cursor_skill() {
             return 1
         fi
 
-        backup_file "$CURSOR_RULE_FILE"
+        backup_file "$CURSOR_SKILL_FILE" "cursor"
     fi
 
     if [ "$DRY_RUN" = true ]; then
-        info "DRY-RUN: 将创建目录 $CURSOR_RULES_DIR"
-        info "DRY-RUN: 将复制 $SOURCE_SKILL_FILE -> $CURSOR_RULE_FILE"
+        info "DRY-RUN: 将创建目录 $CURSOR_SKILL_DIR"
+        info "DRY-RUN: 将复制 $SOURCE_SKILL_FILE -> $CURSOR_SKILL_FILE"
         return 0
     fi
 
-    mkdir -p "$CURSOR_RULES_DIR"
-    cp "$SOURCE_SKILL_FILE" "$CURSOR_RULE_FILE"
+    mkdir -p "$CURSOR_SKILL_DIR"
+    cp "$SOURCE_SKILL_FILE" "$CURSOR_SKILL_FILE"
 
     if [ -d "$SOURCE_TEMPLATES_DIR" ]; then
-        mkdir -p "$CURSOR_RULES_DIR/templates"
-        cp -r "$SOURCE_TEMPLATES_DIR"/* "$CURSOR_RULES_DIR/templates/" 2>/dev/null || true
-        info "模板文件已安装到: $CURSOR_RULES_DIR/templates/"
+        mkdir -p "$CURSOR_SKILL_DIR/templates"
+        cp -r "$SOURCE_TEMPLATES_DIR"/* "$CURSOR_SKILL_DIR/templates/" 2>/dev/null || true
+        info "模板文件已安装到: $CURSOR_SKILL_DIR/templates/"
     fi
 
-    success "Cursor Skill 安装完成: $CURSOR_RULE_FILE"
+    success "Cursor Skill 安装完成: $CURSOR_SKILL_FILE"
 }
 
 # 更新 Cursor MCP 配置
 configure_cursor_mcp() {
     info "配置 Cursor MCP 服务器..."
 
-    if [ ! -d "$CURSOR_DIR" ]; then
+    # Cursor MCP 配置在 ~/.cursor/mcp.json，不是 ~/.claude/
+    local cursor_dir="$HOME/.cursor"
+    if [ ! -d "$cursor_dir" ]; then
         warn "Cursor 目录不存在，跳过 MCP 配置"
         return 1
     fi
 
-    local cursor_mcp_file="$CURSOR_DIR/mcp.json"
+    local cursor_mcp_file="$cursor_dir/mcp.json"
     local script_mcp_file="$SCRIPT_DIR/3.MCP.txt"
 
     if [ ! -f "$script_mcp_file" ]; then
@@ -351,7 +366,7 @@ EOF
 verify_cursor() {
     info "验证 Cursor 安装..."
 
-    if [ ! -f "$CURSOR_RULE_FILE" ]; then
+    if [ ! -f "$CURSOR_SKILL_FILE" ]; then
         error "Cursor 规则文件不存在"
         return 1
     fi
@@ -359,7 +374,7 @@ verify_cursor() {
     info "✓ Cursor 规则文件存在"
 
     # 检查 MCP 配置
-    local cursor_mcp_file="$CURSOR_DIR/mcp.json"
+    local cursor_mcp_file="$HOME/.cursor/mcp.json"
     if [ -f "$cursor_mcp_file" ]; then
         local mcp_count=$(grep -c "context7\|sequential-thinking\|mcp-feedback-enhanced" "$cursor_mcp_file" || echo "0")
         if [ "$mcp_count" -ge 3 ]; then
@@ -403,7 +418,7 @@ show_help() {
 
 安装路径:
     OpenCode: $OPENCODE_SKILL_FILE
-    Cursor:   $CURSOR_RULE_FILE
+    Cursor:   $CURSOR_SKILL_FILE
 
 更多信息: https://github.com/your-org/programming-assistant-skill
 EOF
@@ -416,7 +431,7 @@ uninstall() {
     # 卸载 OpenCode
     if [ -d "$OPENCODE_SKILL_DIR" ]; then
         info "卸载 OpenCode Skill..."
-        backup_file "$OPENCODE_SKILL_DIR"
+        backup_file "$OPENCODE_SKILL_DIR" "opencode"
         rm -rf "$OPENCODE_SKILL_DIR"
         success "OpenCode Skill 已卸载"
     else
@@ -424,10 +439,10 @@ uninstall() {
     fi
 
     # 卸载 Cursor
-    if [ -f "$CURSOR_RULE_FILE" ]; then
+    if [ -f "$CURSOR_SKILL_FILE" ]; then
         info "卸载 Cursor Skill..."
-        backup_file "$CURSOR_RULE_FILE"
-        rm -f "$CURSOR_RULE_FILE"
+        backup_file "$CURSOR_SKILL_FILE" "cursor"
+        rm -f "$CURSOR_SKILL_FILE"
         success "Cursor Skill 已卸载"
     else
         info "Cursor Skill 未安装"
@@ -578,8 +593,8 @@ main() {
         if [ -f "$OPENCODE_SKILL_FILE" ]; then
             info "  OpenCode: $OPENCODE_SKILL_FILE"
         fi
-        if [ -f "$CURSOR_RULE_FILE" ]; then
-            info "  Cursor:   $CURSOR_RULE_FILE"
+        if [ -f "$CURSOR_SKILL_FILE" ]; then
+            info "  Cursor:   $CURSOR_SKILL_FILE"
         fi
 
         info ""
@@ -588,7 +603,15 @@ main() {
         info "2. 在 OpenCode 中使用: skill({ name: 'programming-assistant' })"
         info "3. 在 Cursor 中直接使用，无需额外配置"
         info ""
-        info "如有问题，请查看备份目录: $BACKUP_DIR"
+        if [ "$install_opencode" = true ] && [ "$install_cursor" = true ]; then
+            info "如有问题，请查看备份目录:"
+            info "  OpenCode: $OPENCODE_BACKUP_DIR"
+            info "  Cursor:   $CURSOR_BACKUP_DIR"
+        elif [ "$install_opencode" = true ]; then
+            info "如有问题，请查看备份目录: $OPENCODE_BACKUP_DIR"
+        elif [ "$install_cursor" = true ]; then
+            info "如有问题，请查看备份目录: $CURSOR_BACKUP_DIR"
+        fi
     fi
 }
 

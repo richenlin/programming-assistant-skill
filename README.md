@@ -63,12 +63,13 @@
 ./install.sh --cursor --with-mcp
 ```
 
-安装到: `~/.cursor/rules/programming-assistant.md`
+安装到: `~/.claude/skills/programming-assistant/SKILL.md` (Claude 兼容路径)
 
 ### 详细文档
 
 - **快速开始**: [QUICK-START.md](QUICK-START.md)
-- **OpenCode 正确配置**: [OPENCODE-SKILLS-正确配置.md](OPENCODE-SKILLS-正确配置.md)
+- **OpenCode 配置**: [OpenCode Skills 官方文档](https://opencode.ai/docs/skills/)
+- **Cursor 配置**: [CURSOR-CLAUDE-SKILLS配置.md](CURSOR-CLAUDE-SKILLS配置.md)
 - **Skill 详细说明**: [SKILL.md](SKILL.md)
 
 

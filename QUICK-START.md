@@ -110,18 +110,18 @@ cp /path/to/SKILL.md .opencode/skill/programming-assistant/
 ./install.sh --cursor --with-mcp
 ```
 
-**手动安装（全局规则）**：
+**手动安装（全局 skills）**：
 ```bash
-# 创建rules目录（如果不存在）
-mkdir -p ~/.cursor/rules
+# 创建 Claude skills 目录（OpenCode 和 Cursor 兼容）
+mkdir -p ~/.claude/skills/programming-assistant
 
-# 复制SKILL.md到全局规则目录
-cp SKILL.md ~/.cursor/rules/programming-assistant.md
+# 复制 SKILL.md
+cp SKILL.md ~/.claude/skills/programming-assistant/
 
-# 配置MCP服务器（编辑 ~/.cursor/mcp.json）
+# 配置 MCP 服务器（编辑 ~/.cursor/mcp.json）
 # 参考 3.MCP.txt 文件
 
-# 重启Cursor以使更改生效
+# 重启 Cursor 以使更改生效
 ```
 
 **手动安装（项目级）**：
