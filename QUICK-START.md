@@ -2,24 +2,97 @@
 
 ## 5分钟快速上手
 
-### 第1步：准备文件（1分钟）
+### 推荐方式：一键安装（1分钟）
 
-确保你的项目目录中有以下文件：
-- `SOLUTION.md` - 架构设计文档
-- `TASK.md` - 构建任务列表
-- `programming-assistant.skill.md` - 编程助手skill
+使用提供的安装脚本，自动完成所有配置：
 
-如果没有，可以参考下面的模板创建。
+```bash
+# 完整安装（OpenCode + Cursor + MCP）
+./install.sh --all --with-mcp
+```
 
-### 第2步：配置开发环境（2分钟）
+这个命令会：
+1. ✅ 安装到 OpenCode（全局）
+2. ✅ 安装到 Cursor（全局规则）
+3. ✅ 配置 MCP 服务器（context7, sequential-thinking, mcp-feedback-enhanced）
+4. ✅ 验证安装结果
+
+**安装完成后，重启 OpenCode 和 Cursor 即可使用！**
+
+其他选项：
+```bash
+./install.sh                    # 交互式安装
+./install.sh --opencode         # 仅安装到 OpenCode
+./install.sh --cursor           # 仅安装到 Cursor
+./install.sh --dry-run          # 预览安装，不实际执行
+./install.sh --help             # 显示帮助信息
+```
+
+卸载：
+```bash
+./uninstall.sh --all --with-mcp
+```
+
+---
+
+### 传统方式：手动安装（5分钟）
+
+#### 第1步：准备文件（1分钟）
 
 #### 如果你使用OpenCode
-将 `programming-assistant.skill.md` 放到项目根目录即可，OpenCode会自动识别。
+
+**一键安装（推荐）**：
+```bash
+./install.sh --opencode --with-mcp
+```
+
+**手动安装**：
+```bash
+# 创建skills目录（如果不存在）
+mkdir -p ~/.opencode/skills/programming-assistant
+
+# 复制SKILL.md到规范目录
+cp SKILL.md ~/.opencode/skills/programming-assistant/
+
+# 配置MCP服务器（可选）
+opencode mcp add context7 -- npx -y @upstash/context7-mcp
+opencode mcp add sequential-thinking -- npx -y @modelcontextprotocol/server-sequential-thinking
+opencode mcp add mcp-feedback-enhanced -- uvx mcp-feedback-enhanced@latest
+
+# 重启OpenCode以使更改生效
+```
+
+**重要提示**: 完成安装后，必须**完全重启OpenCode**才能使skill生效。
 
 #### 如果你使用Cursor
+
+**一键安装（推荐）**：
+```bash
+./install.sh --cursor --with-mcp
+```
+
+**手动安装（全局规则）**：
+```bash
+# 创建rules目录（如果不存在）
+mkdir -p ~/.cursor/rules
+
+# 复制SKILL.md到全局规则目录
+cp SKILL.md ~/.cursor/rules/programming-assistant.md
+
+# 配置MCP服务器（编辑 ~/.cursor/mcp.json）
+# 参考 3.MCP.txt 文件
+
+# 重启Cursor以使更改生效
+```
+
+**手动安装（项目级）**：
 在项目根目录创建 `.cursorrules` 文件，添加：
 ```markdown
-你是专业的编程助手，指令参考: programming-assistant.skill.md
+# 引用编程助手skill
+
+你是一名资深的软件工程师和架构师"ZhiSi Architect"，拥有超过10年的全栈开发经验。
+
+完整指令请参考: programming-assistant.skill.md
 ```
 
 ### 第3步：开始使用（2分钟）
@@ -63,6 +136,73 @@
 3. 提供解决方案
 4. 实施修改
 5. 测试验证
+
+## 在OpenCode中使用
+
+### 使用方法
+
+在OpenCode中，你可以通过以下方式激活skill：
+```
+/programming-assistant
+或
+编程助手
+```
+
+### 故障排查
+
+如果激活后MCP工具（context7、sequential-thinking、mcp-feedback-enhanced）无法使用，可以尝试手动注册：
+```bash
+# 手动注册 MCP 服务器
+opencode mcp add context7 npx -y @upstash/context7-mcp
+opencode mcp add sequential-thinking npx -y @modelcontextprotocol/server-sequential-thinking
+opencode mcp add mcp-feedback-enhanced uvx mcp-feedback-enhanced@latest
+```
+
+## 在Cursor中使用
+
+### 配置方法
+
+**方法1: .cursorrules文件**
+在项目根目录创建或编辑 `.cursorrules` 文件，添加：
+```markdown
+# 引用编程助手skill
+
+你是一名资深的软件工程师和架构师"ZhiSi Architect"，拥有超过10年的全栈开发经验。
+
+完整指令请参考: programming-assistant.skill.md
+```
+
+**方法2: .cursorrules.md文件**
+在项目根目录创建 `.cursorrules.md` 文件，包含完整skill内容：
+```markdown
+<!-- 复制 programming-assistant.skill.md 的全部内容到这里 -->
+```
+
+### 使用方法
+
+在Cursor Chat中直接使用，无需额外命令：
+```
+帮我开发一个电商系统，前端用Vue，后端用Go
+```
+
+## 项目结构要求
+
+### 必需文件
+```
+your-project/
+├── README.md           # 项目说明
+├── SOLUTION.md         # 架构设计文档
+└── TASK.md            # 构建任务列表
+```
+
+### 可选文件
+```
+your-project/
+├── DEPLOYMENT.md      # 部署文档
+├── package.json       # Node.js项目
+├── go.mod             # Go项目
+└── requirements.txt   # Python项目
+```
 
 ## 模板文件
 
@@ -131,13 +271,13 @@ project/
 
 ## 核心原则（牢记）
 
-### ✅ 必须遵守
+### 必须遵守
 1. 每次只完成一个任务
 2. 完成后立即测试
 3. 用最少代码完成任务
 4. 不破坏现有功能
 
-### ❌ 严禁事项
+### 严禁事项
 1. 不要使用emoji
 2. 不要过度设计
 3. 不要做无关修改
@@ -160,23 +300,55 @@ project/
 - **何时使用**: 需要确认理解或展示进度时
 - **示例**: "使用mcp-feedback-enhanced向用户展示设计原型"
 
-## 常用命令
+## 常见问题
 
-### OpenCode
-```
-/programming-assistant          # 激活编程助手
-编程助手                         # 也可以用中文
-```
+### Q: 如何更新skill？
+A: 替换对应的skill文件后，需要**重启OpenCode**才能使更改生效。
 
-### Cursor
-直接在Chat中对话即可，无需特定命令。
+### Q: MCP工具不工作怎么办？
+A: 检查以下内容：
+1. 确认已安装 `npx` 和 `uvx` 运行时
+2. 参考 `3.MCP.txt` 中的配置示例
+3. 尝试手动注册 MCP 服务器（见上方"故障排查"）
+4. 确认 `programming-assistant.skill.json` 文件正确加载
+
+### Q: 为什么推荐全局安装而不是项目级安装？
+A: 全局安装更加稳定，OpenCode 会优先加载全局 skills，避免项目级加载的不确定性和潜在冲突。
+
+### Q: 可以自定义skill吗？
+A: 可以，基于现有的skill文件进行修改，添加你自己的规则和工作流程。
+
+### Q: 支持其他编程语言吗？
+A: 是的，skill是语言无关的，可以支持任何编程语言和框架。
+
+### Q: 如何禁用某个MCP工具？
+A: 编辑 `programming-assistant.skill.json`，将对应工具的 `enabled` 设置为 `false`。
+
+## 文件说明
+
+```
+SKILL.md                          # OpenCode/Cursor 规范格式的 skill 文件（新增）
+install.sh                        # 一键安装脚本（新增）
+uninstall.sh                      # 卸载脚本（新增）
+programming-assistant.skill.md     # 传统格式 skill 文件（保留，作为备份）
+programming-assistant.skill.json    # skill 配置文件（保留，作为元数据）
+README.md                         # 项目说明文档（本文件）
+QUICK-START.md                   # 快速开始指南
+3.MCP.txt                        # MCP 服务器配置示例
+```
 
 ## 获取帮助
 
 ### 遇到问题？
-1. 查看 `README-PROGRAMMING-ASSISTANT.md` 了解详细文档
+1. 查看 `README.md` 了解完整文档
 2. 检查 `programming-assistant.skill.json` 中的配置
 3. 确认MCP服务器是否正常运行
+4. 尝试手动注册 MCP 服务器：
+   ```bash
+   opencode mcp add context7 npx -y @upstash/context7-mcp
+   opencode mcp add sequential-thinking npx -y @modelcontextprotocol/server-sequential-thinking
+   opencode mcp add mcp-feedback-enhanced uvx mcp-feedback-enhanced@latest
+   ```
 
 ### 技能提升
 - 阅读 `programming-assistant.skill.md` 了解完整工作流程
@@ -185,8 +357,8 @@ project/
 
 ## 下一步
 
-1. 📖 阅读 `README-PROGRAMMING-ASSISTANT.md` 了解完整文档
-2. 🚀 开始你的第一个项目
-3. 📝 记录使用经验和改进建议
+1. 阅读完整的 `README.md` 了解详细文档
+2. 开始你的第一个项目
+3. 记录使用经验和改进建议
 
-祝你编程愉快！🎉
+祝你编程愉快！

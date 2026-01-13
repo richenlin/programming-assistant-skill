@@ -1,12 +1,13 @@
 # 编程助手 Skill - 使用指南
 
+
 ## 概述
 
 这是一个专业的编程助手skill，基于ZhiSi Architect方法论，支持全栈开发和架构设计。该skill集成了Context7、sequential-thinking和mcp-feedback-enhanced等MCP工具，能够在OpenCode和Cursor中使用。
 
 ## 核心特性
 
-### 🎯 全栈开发支持
+### 全栈开发支持
 - **前端**: React, Vue, Angular, TypeScript
 - **后端**: Golang, Python, Node.js, Java
 - **数据库**: PostgreSQL, MySQL, MongoDB, Redis
@@ -16,90 +17,89 @@
 - **DevOps**:
   - **CI/CD**: 适配私有云和公有云/混合云两类场景
 
-### 🔧 MCP工具集成
+### MCP工具集成
 - **Context7**: 获取最新文档和代码示例
 - **sequential-thinking**: 深度分析和问题拆解
 - **mcp-feedback-enhanced**: 用户交互和反馈
 
-### 📋 工作流程
+### 工作流程
 1. 项目初始化
 2. 需求分析
 3. 代码实现
 4. 问题解决
 
-## 安装与配置
+## 工作流程
 
-### 在OpenCode中使用
-
-#### 方法1: 直接使用（推荐）
-将以下文件放入你的OpenCode项目目录：
+### 项目初始化
 ```
-your-project/
-├── programming-assistant.skill.md
-├── programming-assistant.skill.json
-└── README.md
+输入: 新项目需求
+流程:
+  1. 读取项目根目录的 SOLUTION.md 和 TASK.md
+  2. 理解架构设计和技术选型
+  3. 检查 README.md，不存在则创建
+  4. 使用 sequential-thinking MCP 拆解需求
+输出: 项目初始化完成，准备开发
 ```
 
-OpenCode会自动识别并加载skill。
+### 需求分析
+```
+输入: 用户功能需求
+流程:
+  1. 深入理解需求，从用户角度思考
+  2. 使用 sequential-thinking 分析需求完整性
+  3. 使用 mcp-feedback-enhanced 与用户确认理解
+  4. 识别缺失需求或缺口，与用户讨论完善
+  5. 选择最简单的解决方案，避免过度工程化
+输出: 需求确认和技术方案
+```
 
-#### 方法2: 全局安装
-将skill文件放入OpenCode的skills目录：
+### 代码实现
+```
+输入: 确认的需求和方案
+流程:
+  1. 按 TASK.md 顺序执行任务
+  2. 每次只完成一个任务
+  3. 使用 Context7 查询最新文档和示例
+  4. 编写符合规范的代码（精确、模块化、可测试）
+  5. 运行测试验证功能
+  6. 确认不破坏现有功能
+  7. 使用 mcp-feedback-enhanced 获取用户反馈
+输出: 可测试的代码单元
+
+
+## 快速开始
+
+### 推荐方式：一键安装（支持 OpenCode 和 Cursor）
+
 ```bash
-# 查找OpenCode skills目录
-# 通常在: ~/.opencode/skills/ 或类似位置
-cp programming-assistant.skill.md ~/.opencode/skills/
-cp programming-assistant.skill.json ~/.opencode/skills/
+./install.sh --all --with-mcp
 ```
 
-#### 使用方法
-在OpenCode中，你可以通过以下方式激活skill：
-```
-/programming-assistant
-或
-编程助手
-```
+这将自动：
+1. 安装到 OpenCode（全局）
+2. 安装到 Cursor（全局规则）
+3. 配置 MCP 服务器
+4. 验证安装结果
 
-### 在Cursor中使用
+查看 [QUICK-START.md](QUICK-START.md) 了解详细的安装选项
 
-#### 方法1: .cursorrules文件
-在项目根目录创建或编辑 `.cursorrules` 文件，添加：
-```markdown
-# 引用编程助手skill
+### 传统安装方式
 
-你是一名资深的软件工程师和架构师"ZhiSi Architect"，拥有超过10年的全栈开发经验。
-
-完整指令请参考: programming-assistant.skill.md
+查看 [QUICK-START.md](QUICK-START.md) 了解如何在5分钟内完成手动安装和配置
 ```
 
-#### 方法2: .cursorrules.md文件
-在项目根目录创建 `.cursorrules.md` 文件，包含完整skill内容：
-```markdown
-<!-- 复制 programming-assistant.skill.md 的全部内容到这里 -->
+### 问题解决
 ```
-
-#### 使用方法
-在Cursor Chat中直接使用，无需额外命令：
-```
-帮我开发一个电商系统，前端用Vue，后端用Go
-```
-
-## 项目结构要求
-
-### 必需文件
-```
-your-project/
-├── README.md           # 项目说明
-├── SOLUTION.md         # 架构设计文档
-└── TASK.md            # 构建任务列表
-```
-
-### 可选文件
-```
-your-project/
-├── DEPLOYMENT.md      # 部署文档
-├── package.json       # Node.js项目
-├── go.mod             # Go项目
-└── requirements.txt   # Python项目
+输入: 用户反馈的问题或错误
+流程:
+  1. 彻底审查相关代码
+  2. 使用 sequential-thinking 深度分析
+  3. 使用 Context7 查询相关文档和最佳实践
+  4. 提出多个解决方案，使用决策树评估
+  5. 选择最优方案并实施
+  6. 最小化修改，确保不破坏现有功能
+  7. 测试验证修复效果
+输出: 问题解决和修复代码
 ```
 
 ## 使用示例
@@ -159,23 +159,23 @@ your-project/
 ## 代码规范
 
 ### 必须遵守
-1. ✅ 用最少的代码完成任务
-2. ✅ 代码必须精确、模块化、可测试
-3. ✅ 始终考虑安全性
-4. ✅ 优化代码性能
-5. ✅ 每完成一个任务就进行测试
+1. 用最少的代码完成任务
+2. 代码必须精确、模块化、可测试
+3. 始终考虑安全性
+4. 优化代码性能
+5. 每完成一个任务就进行测试
 
 ### 代码风格
-- ❌ 不使用emoji
-- 📝 减少代码注释，仅必要时编写
-- 📋 遵循现有代码库的规范和风格
-- 🎯 保持代码清晰性和可维护性
+- 不使用emoji
+- 减少代码注释，仅必要时编写
+- 遵循现有代码库的规范和风格
+- 保持代码清晰性和可维护性
 
 ### 文档规范
-- 📄 减少文档数量
-- 📋 仅保留主要文档：README.md, SOLUTION.md, TASK.md, DEPLOYMENT.md
-- 🇨🇳 使用简体中文编写文档
-- 🔤 技术术语保持英文原样
+- 减少文档数量
+- 仅保留主要文档：README.md, SOLUTION.md, TASK.md, DEPLOYMENT.md
+- 使用简体中文编写文档
+- 技术术语保持英文原样
 
 ## 响应规则
 
@@ -260,31 +260,6 @@ your-project/
 3. 记录所有尝试和失败原因
 4. 向用户报告问题，寻求指导
 
-## 常见问题
-
-### Q: 如何更新skill？
-A: 替换对应的skill文件即可，OpenCode和Cursor会自动重新加载。
-
-### Q: MCP工具不工作怎么办？
-A: 检查MCP服务器配置是否正确，参考 `3.MCP.txt` 中的配置示例。
-
-### Q: 可以自定义skill吗？
-A: 可以，基于现有的skill文件进行修改，添加你自己的规则和工作流程。
-
-### Q: 支持其他编程语言吗？
-A: 是的，skill是语言无关的，可以支持任何编程语言和框架。
-
-### Q: 如何禁用某个MCP工具？
-A: 编辑 `programming-assistant.skill.json`，将对应工具的 `enabled` 设置为 `false`。
-
-## 文件说明
-
-```
-programming-assistant.skill.md    # 主要skill文件，包含完整的指令和工作流程
-programming-assistant.skill.json   # skill配置文件，用于系统集成
-README.md                          # 使用说明文档（本文件）
-```
-
 ## 版本历史
 
 ### v1.0.0 (2025-01-13)
@@ -300,3 +275,55 @@ README.md                          # 使用说明文档（本文件）
 ## 许可
 
 本skill基于ZhiSi Architect方法论创建，可自由使用和修改。
+
+---
+
+## 安装说明
+
+### 方式一：一键安装（推荐）
+
+使用提供的安装脚本，自动完成所有配置：
+
+```bash
+./install.sh --all --with-mcp
+```
+
+安装选项：
+- `--opencode` - 仅安装到 OpenCode
+- `--cursor` - 仅安装到 Cursor
+- `--with-mcp` - 同时配置 MCP 服务器
+- `--all` - 完整安装（两个平台都装）
+- `--dry-run` - 预览模式，不实际执行
+
+### 方式二：手动安装
+
+参见 [QUICK-START.md](QUICK-START.md) 了解详细的手动安装步骤。
+
+### 卸载
+
+使用卸载脚本：
+
+```bash
+./uninstall.sh --all --with-mcp
+```
+
+### 安装路径
+
+- **OpenCode**: `~/.opencode/skills/programming-assistant/SKILL.md`
+- **Cursor**: `~/.cursor/rules/programming-assistant.md`
+
+### MCP 服务器配置
+
+脚本会自动配置以下 MCP 服务器：
+- **context7**: 获取最新文档和代码示例
+- **sequential-thinking**: 深度分析和问题拆解
+- **mcp-feedback-enhanced**: 用户交互和反馈
+
+如需手动配置，请参考 `3.MCP.txt` 文件。
+
+---
+
+**相关文档**:
+- [QUICK-START.md](QUICK-START.md) - 快速开始指南（安装配置）
+- [install.sh](./install.sh) - 一键安装脚本
+- [uninstall.sh](./uninstall.sh) - 卸载脚本
