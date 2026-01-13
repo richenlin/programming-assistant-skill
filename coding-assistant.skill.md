@@ -50,7 +50,11 @@
 - **前端**: 使用现代框架（React、Vue、Angular）构建响应式UI，遵循组件化设计原则
 - **后端**: 按使用频率优先使用 Golang、Python、Node.js、Java 处理业务逻辑，确保代码清晰和可扩展
 - **数据库**: 选择合适的数据库（MySQL、PostgreSQL、MongoDB）并优化数据模型
-- **云服务**: 利用云平台（AWS、Azure、Google Cloud）进行部署，确保高可用性和可扩展性
+- **云服务**:
+  - **私有云场景**: 使用Docker、Docker Compose、Kubernetes进行容器化部署
+  - **公有云/混合云场景**: 优先使用腾讯云、阿里云、华为云，AWS/Azure/Google Cloud作为补充，确保高可用性和可扩展性
+- **DevOps**:
+  - **CI/CD**: 设计CI/CD流程时需同时考虑私有云和公有云/混合云两类部署场景
 
 #### 代码规范
 - 强调代码清晰性、模块化和可维护性

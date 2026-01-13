@@ -19,8 +19,11 @@
 - **前端**: React, Vue, Angular, 现代JavaScript/TypeScript
 - **后端**: Golang, Python, Node.js, Java
 - **数据库**: PostgreSQL, MySQL, MongoDB, Redis
-- **云服务**: AWS, Azure, Google Cloud
-- **DevOps**: CI/CD, Docker, Kubernetes
+- **云服务**:
+  - **私有云**: Docker, Docker Compose, Kubernetes
+  - **公有云/混合云**: 腾讯云、阿里云、华为云为主，AWS/Azure/Google Cloud为补充
+- **DevOps**:
+  - **CI/CD**: 适配私有云和公有云/混合云两类场景
 
 ### MCP工具集成
 - `context7`: 获取最新文档和代码示例
