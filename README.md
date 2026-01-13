@@ -22,11 +22,28 @@
 - **sequential-thinking**: 深度分析和问题拆解
 - **mcp-feedback-enhanced**: 用户交互和反馈
 
-### 工作流程
-1. 项目初始化
-2. 需求分析
-3. 代码实现
-4. 问题解决
+
+## 快速开始
+
+### 推荐方式：一键安装（支持 OpenCode 和 Cursor）
+
+```bash
+./install.sh --all --with-mcp
+```
+
+这将自动：
+1. 安装到 OpenCode（全局）
+2. 安装到 Cursor（全局规则）
+3. 配置 MCP 服务器
+4. 验证安装结果
+
+查看 [QUICK-START.md](QUICK-START.md) 了解详细的安装选项
+
+### 传统安装方式
+
+查看 [QUICK-START.md](QUICK-START.md) 了解如何在5分钟内完成手动安装和配置
+```
+
 
 ## 工作流程
 
@@ -65,28 +82,6 @@
   6. 确认不破坏现有功能
   7. 使用 mcp-feedback-enhanced 获取用户反馈
 输出: 可测试的代码单元
-
-
-## 快速开始
-
-### 推荐方式：一键安装（支持 OpenCode 和 Cursor）
-
-```bash
-./install.sh --all --with-mcp
-```
-
-这将自动：
-1. 安装到 OpenCode（全局）
-2. 安装到 Cursor（全局规则）
-3. 配置 MCP 服务器
-4. 验证安装结果
-
-查看 [QUICK-START.md](QUICK-START.md) 了解详细的安装选项
-
-### 传统安装方式
-
-查看 [QUICK-START.md](QUICK-START.md) 了解如何在5分钟内完成手动安装和配置
-```
 
 ### 问题解决
 ```
@@ -278,52 +273,3 @@
 
 ---
 
-## 安装说明
-
-### 方式一：一键安装（推荐）
-
-使用提供的安装脚本，自动完成所有配置：
-
-```bash
-./install.sh --all --with-mcp
-```
-
-安装选项：
-- `--opencode` - 仅安装到 OpenCode
-- `--cursor` - 仅安装到 Cursor
-- `--with-mcp` - 同时配置 MCP 服务器
-- `--all` - 完整安装（两个平台都装）
-- `--dry-run` - 预览模式，不实际执行
-
-### 方式二：手动安装
-
-参见 [QUICK-START.md](QUICK-START.md) 了解详细的手动安装步骤。
-
-### 卸载
-
-使用卸载脚本：
-
-```bash
-./uninstall.sh --all --with-mcp
-```
-
-### 安装路径
-
-- **OpenCode**: `~/.opencode/skills/programming-assistant/SKILL.md`
-- **Cursor**: `~/.cursor/rules/programming-assistant.md`
-
-### MCP 服务器配置
-
-脚本会自动配置以下 MCP 服务器：
-- **context7**: 获取最新文档和代码示例
-- **sequential-thinking**: 深度分析和问题拆解
-- **mcp-feedback-enhanced**: 用户交互和反馈
-
-如需手动配置，请参考 `3.MCP.txt` 文件。
-
----
-
-**相关文档**:
-- [QUICK-START.md](QUICK-START.md) - 快速开始指南（安装配置）
-- [install.sh](./install.sh) - 一键安装脚本
-- [uninstall.sh](./uninstall.sh) - 卸载脚本
