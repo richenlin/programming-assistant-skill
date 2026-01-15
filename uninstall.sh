@@ -27,12 +27,17 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
-VERSION="1.0.0"
+VERSION="1.2.0"
 
-# OpenCode 路径
-OPENCODE_SKILLS_DIR="$HOME/.opencode/skills"
+# OpenCode 路径（官方文档：https://opencode.ai/docs/skills/）
+OPENCODE_SKILLS_DIR="$HOME/.config/opencode/skill"
 OPENCODE_SKILL_DIR="$OPENCODE_SKILLS_DIR/programming-assistant"
 OPENCODE_SKILL_FILE="$OPENCODE_SKILL_DIR/SKILL.md"
+
+# Claude Code 路径（官方文档：https://docs.anthropic.com/en/docs/claude-code/skills）
+CLAUDE_CODE_SKILLS_DIR="$HOME/.claude/skills"
+CLAUDE_CODE_SKILL_DIR="$CLAUDE_CODE_SKILLS_DIR/programming-assistant"
+CLAUDE_CODE_SKILL_FILE="$CLAUDE_CODE_SKILL_DIR/SKILL.md"
 
 # Cursor 路径
 CURSOR_DIR="$HOME/.cursor"
@@ -128,19 +133,43 @@ uninstall_opencode_skill() {
         return 0
     fi
 
-    # 确认删除
     if ! confirm "确认删除 OpenCode Skill？"; then
         info "跳过 OpenCode 卸载"
         return 1
     fi
 
-    # 备份
     backup_file "$OPENCODE_SKILL_DIR"
-
-    # 删除
     rm -rf "$OPENCODE_SKILL_DIR"
 
     success "OpenCode Skill 已卸载"
+}
+
+################################################################################
+# 卸载 Claude Code Skill
+################################################################################
+
+uninstall_claude_code_skill() {
+    info "卸载 Claude Code Skill..."
+
+    if [ ! -d "$CLAUDE_CODE_SKILL_DIR" ] && [ ! -f "$CLAUDE_CODE_SKILL_FILE" ]; then
+        info "Claude Code Skill 未安装"
+        return 0
+    fi
+
+    if [ "$DRY_RUN" = true ]; then
+        info "DRY-RUN: 将删除 $CLAUDE_CODE_SKILL_DIR"
+        return 0
+    fi
+
+    if ! confirm "确认删除 Claude Code Skill？"; then
+        info "跳过 Claude Code 卸载"
+        return 1
+    fi
+
+    backup_file "$CLAUDE_CODE_SKILL_DIR"
+    rm -rf "$CLAUDE_CODE_SKILL_DIR"
+
+    success "Claude Code Skill 已卸载"
 }
 
 # 卸载 OpenCode MCP 服务器
@@ -233,7 +262,6 @@ uninstall_cursor_mcp() {
 # 主流程
 ################################################################################
 
-# 显示帮助
 show_help() {
     cat << EOF
 编程助手 Skill 卸载脚本 v${VERSION}
@@ -243,6 +271,7 @@ show_help() {
 
 选项:
     --opencode              仅卸载 OpenCode
+    --claude-code           仅卸载 Claude Code
     --cursor                仅卸载 Cursor
     --with-mcp              同时卸载 MCP 配置
     --all                   完整卸载（推荐）
@@ -253,6 +282,7 @@ show_help() {
     $SCRIPT_NAME                    # 交互式卸载
     $SCRIPT_NAME --all --with-mcp   # 完整卸载（推荐）
     $SCRIPT_NAME --opencode         # 仅卸载 OpenCode
+    $SCRIPT_NAME --claude-code      # 仅卸载 Claude Code
     $SCRIPT_NAME --dry-run          # 预览卸载
 
 警告:
@@ -262,10 +292,9 @@ show_help() {
 EOF
 }
 
-# 主函数
 main() {
-    # 解析参数
     local uninstall_opencode=false
+    local uninstall_claude_code=false
     local uninstall_cursor=false
     uninstall_mcp=false
     local dry_run=false
@@ -274,6 +303,10 @@ main() {
         case $1 in
             --opencode)
                 uninstall_opencode=true
+                shift
+                ;;
+            --claude-code)
+                uninstall_claude_code=true
                 shift
                 ;;
             --cursor)
@@ -286,6 +319,7 @@ main() {
                 ;;
             --all)
                 uninstall_opencode=true
+                uninstall_claude_code=true
                 uninstall_cursor=true
                 uninstall_mcp=true
                 shift
@@ -320,29 +354,33 @@ main() {
     info "所有删除的文件将备份到: $BACKUP_DIR"
     echo ""
 
-    # 如果没有指定平台，交互式选择
-    if [ "$uninstall_opencode" = false ] && [ "$uninstall_cursor" = false ]; then
+    if [ "$uninstall_opencode" = false ] && [ "$uninstall_claude_code" = false ] && [ "$uninstall_cursor" = false ]; then
         separator
         info "选择要卸载的平台:"
         info "1) OpenCode"
-        info "2) Cursor"
-        info "3) 两个都卸载"
-        info "4) 退出"
+        info "2) Claude Code"
+        info "3) Cursor"
+        info "4) 全部卸载"
+        info "5) 退出"
         separator
 
-        read -p "请选择 [1-4]: " choice
+        read -p "请选择 [1-5]: " choice
         case $choice in
             1)
                 uninstall_opencode=true
                 ;;
             2)
-                uninstall_cursor=true
+                uninstall_claude_code=true
                 ;;
             3)
-                uninstall_opencode=true
                 uninstall_cursor=true
                 ;;
             4)
+                uninstall_opencode=true
+                uninstall_claude_code=true
+                uninstall_cursor=true
+                ;;
+            5)
                 info "退出卸载"
                 exit 0
                 ;;
@@ -352,18 +390,17 @@ main() {
                 ;;
         esac
 
-        # 询问是否卸载 MCP 配置
         if confirm "是否卸载 MCP 服务器配置？"; then
             uninstall_mcp=true
         fi
     fi
 
-    # 最终确认
     if [ "$DRY_RUN" = false ]; then
         separator
         warn "即将执行卸载操作:"
         [ "$uninstall_opencode" = true ] && info "  - OpenCode Skill"
-        [ "$uninstall_cursor" = true ] && info "  - Cursor Skill"
+        [ "$uninstall_claude_code" = true ] && info "  - Claude Code Skill"
+        [ "$uninstall_cursor" = true ] && info "  - Cursor Rules"
         [ "$uninstall_mcp" = true ] && info "  - MCP 服务器配置"
         separator
         echo ""
@@ -375,7 +412,6 @@ main() {
         echo ""
     fi
 
-    # 卸载 OpenCode
     if [ "$uninstall_opencode" = true ]; then
         separator
         info "=== 卸载 OpenCode Skill ==="
@@ -388,10 +424,17 @@ main() {
         fi
     fi
 
-    # 卸载 Cursor
+    if [ "$uninstall_claude_code" = true ]; then
+        separator
+        info "=== 卸载 Claude Code Skill ==="
+        separator
+
+        uninstall_claude_code_skill
+    fi
+
     if [ "$uninstall_cursor" = true ]; then
         separator
-        info "=== 卸载 Cursor Skill ==="
+        info "=== 卸载 Cursor Rules ==="
         separator
 
         uninstall_cursor_skill

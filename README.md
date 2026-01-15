@@ -3,7 +3,7 @@
 
 ## 概述
 
-这是一个专业的编程助手skill，基于ZhiSi Architect方法论，支持全栈开发和架构设计。该skill集成了Context7、sequential-thinking和mcp-feedback-enhanced等MCP工具，能够在OpenCode和Cursor中使用。
+这是一个专业的编程助手skill，基于ZhiSi Architect方法论，支持全栈开发和架构设计。该skill集成了Context7、sequential-thinking和mcp-feedback-enhanced等MCP工具，能够在 **OpenCode**、**Claude Code** 和 **Cursor** 中使用。
 
 ## 核心特性
 
@@ -28,19 +28,20 @@
 ### 一键安装（推荐）
 
 ```bash
-# 完整安装（OpenCode + Cursor + MCP）
-./install.sh --all --with-mcp
+# 完整安装（OpenCode + Claude Code + Cursor + MCP）
+./install.sh --all --mcp-auto
 ```
 
 这将自动：
 1. ✅ 安装到 OpenCode（全局 skill）
-2. ✅ 安装到 Cursor（全局规则）
-3. ✅ 配置 MCP 服务器
-4. ✅ 验证安装结果
+2. ✅ 安装到 Claude Code（全局 skill）
+3. ✅ 安装到 Cursor（全局规则）
+4. ✅ 配置 MCP 服务器
+5. ✅ 验证安装结果
 
-**完成后重启 OpenCode 和 Cursor 即可使用！**
+**完成后重启相应的 IDE/CLI 即可使用！**
 
-### OpenCode 用户（仅安装 OpenCode）
+### OpenCode 用户
 
 ```bash
 ./install.sh --opencode --with-mcp
@@ -48,20 +49,30 @@
 
 安装到: `~/.config/opencode/skill/programming-assistant/SKILL.md`
 
-### Cursor 用户（仅安装 Cursor）
+### Claude Code 用户
+
+```bash
+./install.sh --claude-code
+```
+
+安装到: `~/.claude/skills/programming-assistant/SKILL.md`
+
+### Cursor 用户
 
 ```bash
 ./install.sh --cursor --with-mcp
 ```
 
-安装到: `~/.claude/skills/programming-assistant/SKILL.md` (Claude 兼容路径)
+安装到: `~/.cursor/rules/programming-assistant.md`
 
 ### 详细文档
 
 - **快速开始**: [QUICK-START.md](QUICK-START.md)
-- **OpenCode 配置**: [OpenCode Skills 官方文档](https://opencode.ai/docs/skills/)
-- **Cursor 配置**: [CURSOR-CLAUDE-SKILLS配置.md](CURSOR-CLAUDE-SKILLS配置.md)
+- **MCP 配置**: [MCP-SERVERS.md](MCP-SERVERS.md)
+- **文档结构**: [DOCS-STRUCTURE.md](DOCS-STRUCTURE.md)
 - **Skill 详细说明**: [SKILL.md](SKILL.md)
+- **OpenCode 配置**: [OpenCode Skills 官方文档](https://opencode.ai/docs/skills/)
+- **Claude Code 配置**: [Claude Code Skills 官方文档](https://docs.anthropic.com/en/docs/claude-code/skills)
 
 
 ## 工作流程
@@ -275,6 +286,25 @@
 4. 向用户报告问题，寻求指导
 
 ## 版本历史
+
+### v1.2.0 (2025-01-15)
+- 统一版本号管理，创建 VERSION 文件作为单一版本源
+- 优化文档结构，明确各文档职责
+- 创建 MCP-SERVERS.md 统一 MCP 配置文档
+- 创建 DOCS-STRUCTURE.md 说明文档结构
+- 修复版本不一致问题
+- 改进 MCP 配置管理
+
+### v1.1.0 (2025-01-13)
+- 添加 Claude Code 支持
+- 添加渐进式工作流程
+- 双代理策略（初始化代理 + 编码代理）
+- 三大关键文件（progress.txt, feature_list.json, git history）
+- 黄金法则（干净状态）
+- 修复 OpenCode 安装路径（统一使用 `~/.config/opencode/skill/`）
+- 修复 Cursor 安装路径（使用正确的 `~/.cursor/rules/` 路径）
+- 统一 install.sh 和 uninstall.sh 的路径定义
+- 自动检测 OpenCode、Claude Code、Cursor 安装
 
 ### v1.0.0 (2025-01-13)
 - 初始版本发布

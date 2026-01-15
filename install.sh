@@ -27,27 +27,37 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
-VERSION="1.0.0"
+VERSION="1.2.0"
 
 # OpenCode 路径（官方文档：https://opencode.ai/docs/skills/）
+# OpenCode 支持两种路径：~/.config/opencode/skill/ 和 ~/.claude/skills/（Claude兼容）
 OPENCODE_SKILLS_DIR="$HOME/.config/opencode/skill"
 OPENCODE_SKILL_DIR="$OPENCODE_SKILLS_DIR/programming-assistant"
 OPENCODE_SKILL_FILE="$OPENCODE_SKILL_DIR/SKILL.md"
 
-# Cursor 路径（使用 Claude 兼容路径）
+# Claude Code 路径（官方文档：https://docs.anthropic.com/en/docs/claude-code/skills）
+# Claude Code 使用 ~/.claude/skills/<name>/SKILL.md
+CLAUDE_CODE_SKILLS_DIR="$HOME/.claude/skills"
+CLAUDE_CODE_SKILL_DIR="$CLAUDE_CODE_SKILLS_DIR/programming-assistant"
+CLAUDE_CODE_SKILL_FILE="$CLAUDE_CODE_SKILL_DIR/SKILL.md"
+
+# Cursor 路径
+# Cursor 使用 ~/.cursor/rules/ 目录存放全局规则
 CURSOR_DIR="$HOME/.cursor"  # Cursor 主目录（用于检测和 MCP 配置）
-CURSOR_SKILLS_DIR="$HOME/.claude/skills"  # Skills 存放目录
-CURSOR_SKILL_DIR="$CURSOR_SKILLS_DIR/programming-assistant"
-CURSOR_SKILL_FILE="$CURSOR_SKILL_DIR/SKILL.md"
+CURSOR_RULES_DIR="$CURSOR_DIR/rules"  # Cursor 全局规则目录
+CURSOR_RULE_FILE="$CURSOR_RULES_DIR/programming-assistant.md"
 
 # 源文件
 SOURCE_SKILL_FILE="$SCRIPT_DIR/SKILL.md"
 SOURCE_LEGACY_SKILL_FILE="$SCRIPT_DIR/programming-assistant.skill.md"
 SOURCE_TEMPLATES_DIR="$SCRIPT_DIR/templates"
+SOURCE_REFERENCE_FILE="$SCRIPT_DIR/reference.md"
+SOURCE_EXAMPLES_FILE="$SCRIPT_DIR/examples.md"
 
 # 备份目录（按源目录分类）
 OPENCODE_BACKUP_DIR="$HOME/.config/opencode/skill/.backup"
-CURSOR_BACKUP_DIR="$HOME/.claude/skills/.backup"
+CLAUDE_CODE_BACKUP_DIR="$HOME/.claude/skills/.backup"
+CURSOR_BACKUP_DIR="$HOME/.cursor/rules/.backup"
 BACKUP_TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
 # 颜色输出
@@ -109,19 +119,24 @@ confirm() {
 }
 
 # 创建备份
-# 参数: $1 - 要备份的文件, $2 - 备份类型 (opencode|cursor)
+# 参数: $1 - 要备份的文件, $2 - 备份类型 (opencode|claude_code|cursor)
 backup_file() {
     local file="$1"
     local backup_type="${2:-opencode}"
     
     if [ -f "$file" ]; then
-        # 根据类型选择备份目录
         local backup_dir
-        if [ "$backup_type" = "cursor" ]; then
-            backup_dir="$CURSOR_BACKUP_DIR"
-        else
-            backup_dir="$OPENCODE_BACKUP_DIR"
-        fi
+        case "$backup_type" in
+            cursor)
+                backup_dir="$CURSOR_BACKUP_DIR"
+                ;;
+            claude_code)
+                backup_dir="$CLAUDE_CODE_BACKUP_DIR"
+                ;;
+            *)
+                backup_dir="$OPENCODE_BACKUP_DIR"
+                ;;
+        esac
         
         mkdir -p "$backup_dir"
         local backup_file="$backup_dir/$(basename "$file").$BACKUP_TIMESTAMP"
@@ -155,6 +170,18 @@ check_opencode() {
         return 0
     else
         warn "未检测到 OpenCode CLI，将跳过 OpenCode 安装"
+        return 1
+    fi
+}
+
+# 检查 Claude Code 安装
+check_claude_code() {
+    if command_exists claude; then
+        local version=$(claude --version 2>/dev/null || echo "unknown")
+        info "检测到 Claude Code CLI: $version"
+        return 0
+    else
+        warn "未检测到 Claude Code CLI，将跳过 Claude Code 安装"
         return 1
     fi
 }
@@ -204,6 +231,9 @@ install_opencode_skill() {
 
     cp "$SOURCE_SKILL_FILE" "$OPENCODE_SKILL_FILE"
 
+    [ -f "$SOURCE_REFERENCE_FILE" ] && cp "$SOURCE_REFERENCE_FILE" "$OPENCODE_SKILL_DIR/"
+    [ -f "$SOURCE_EXAMPLES_FILE" ] && cp "$SOURCE_EXAMPLES_FILE" "$OPENCODE_SKILL_DIR/"
+
     if [ -d "$SOURCE_TEMPLATES_DIR" ]; then
         mkdir -p "$OPENCODE_SKILL_DIR/templates"
         cp -r "$SOURCE_TEMPLATES_DIR"/* "$OPENCODE_SKILL_DIR/templates/" 2>/dev/null || true
@@ -218,7 +248,7 @@ configure_opencode_mcp() {
     info "配置 OpenCode MCP 服务器..."
 
     local opencode_mcp_file="$HOME/.config/opencode/mcp.json"
-    local script_mcp_file="$SCRIPT_DIR/3.MCP.txt"
+    local script_mcp_file="$SCRIPT_DIR/mcp-config.json"
 
     if [ ! -f "$script_mcp_file" ]; then
         warn "未找到 MCP 配置模板: $script_mcp_file"
@@ -251,8 +281,12 @@ EOF
     success "OpenCode MCP 配置指南完成"
 }
 
-# 验证 OpenCode 安装
 verify_opencode() {
+    if [ "$DRY_RUN" = true ]; then
+        info "DRY-RUN: 跳过验证"
+        return 0
+    fi
+
     info "验证 OpenCode 安装..."
 
     if [ ! -f "$OPENCODE_SKILL_FILE" ]; then
@@ -262,7 +296,6 @@ verify_opencode() {
 
     info "✓ SKILL.md 文件存在"
 
-    # 检查 YAML frontmatter
     if grep -q "^name: " "$OPENCODE_SKILL_FILE" && grep -q "^description: " "$OPENCODE_SKILL_FILE"; then
         info "✓ YAML frontmatter 格式正确"
     else
@@ -282,17 +315,84 @@ verify_opencode() {
 }
 
 ################################################################################
-# 安装 Cursor Skill
+# 安装 Claude Code Skill
+################################################################################
+
+install_claude_code_skill() {
+    info "安装 Claude Code Skill..."
+
+    if [ -f "$CLAUDE_CODE_SKILL_FILE" ]; then
+        warn "目标文件已存在: $CLAUDE_CODE_SKILL_FILE"
+        if [ "$DRY_RUN" = true ]; then
+            info "DRY-RUN: 将覆盖 $CLAUDE_CODE_SKILL_FILE"
+            return 0
+        fi
+
+        if ! confirm "是否覆盖现有文件？"; then
+            info "跳过 Claude Code 安装"
+            return 1
+        fi
+
+        backup_file "$CLAUDE_CODE_SKILL_FILE" "claude_code"
+    fi
+
+    if [ "$DRY_RUN" = true ]; then
+        info "DRY-RUN: 将创建目录 $CLAUDE_CODE_SKILL_DIR"
+        info "DRY-RUN: 将复制 $SOURCE_SKILL_FILE -> $CLAUDE_CODE_SKILL_FILE"
+        return 0
+    fi
+
+    mkdir -p "$CLAUDE_CODE_SKILL_DIR"
+    cp "$SOURCE_SKILL_FILE" "$CLAUDE_CODE_SKILL_FILE"
+
+    [ -f "$SOURCE_REFERENCE_FILE" ] && cp "$SOURCE_REFERENCE_FILE" "$CLAUDE_CODE_SKILL_DIR/"
+    [ -f "$SOURCE_EXAMPLES_FILE" ] && cp "$SOURCE_EXAMPLES_FILE" "$CLAUDE_CODE_SKILL_DIR/"
+
+    if [ -d "$SOURCE_TEMPLATES_DIR" ]; then
+        mkdir -p "$CLAUDE_CODE_SKILL_DIR/templates"
+        cp -r "$SOURCE_TEMPLATES_DIR"/* "$CLAUDE_CODE_SKILL_DIR/templates/" 2>/dev/null || true
+        info "模板文件已安装到: $CLAUDE_CODE_SKILL_DIR/templates/"
+    fi
+
+    success "Claude Code Skill 安装完成: $CLAUDE_CODE_SKILL_FILE"
+}
+
+verify_claude_code() {
+    if [ "$DRY_RUN" = true ]; then
+        info "DRY-RUN: 跳过验证"
+        return 0
+    fi
+
+    info "验证 Claude Code 安装..."
+
+    if [ ! -f "$CLAUDE_CODE_SKILL_FILE" ]; then
+        error "SKILL.md 文件不存在"
+        return 1
+    fi
+
+    info "✓ SKILL.md 文件存在"
+
+    if grep -q "^name: " "$CLAUDE_CODE_SKILL_FILE" && grep -q "^description: " "$CLAUDE_CODE_SKILL_FILE"; then
+        info "✓ YAML frontmatter 格式正确"
+    else
+        error "YAML frontmatter 格式不正确"
+        return 1
+    fi
+
+    success "Claude Code 验证完成"
+}
+
+################################################################################
+# 安装 Cursor Rules
 ################################################################################
 
 install_cursor_skill() {
-    info "安装 Cursor Skill..."
+    info "安装 Cursor Rules..."
 
-    # 检查是否覆盖
-    if [ -f "$CURSOR_SKILL_FILE" ]; then
-        warn "目标文件已存在: $CURSOR_SKILL_FILE"
+    if [ -f "$CURSOR_RULE_FILE" ]; then
+        warn "目标文件已存在: $CURSOR_RULE_FILE"
         if [ "$DRY_RUN" = true ]; then
-            info "DRY-RUN: 将覆盖 $CURSOR_SKILL_FILE"
+            info "DRY-RUN: 将覆盖 $CURSOR_RULE_FILE"
             return 0
         fi
 
@@ -301,25 +401,19 @@ install_cursor_skill() {
             return 1
         fi
 
-        backup_file "$CURSOR_SKILL_FILE" "cursor"
+        backup_file "$CURSOR_RULE_FILE" "cursor"
     fi
 
     if [ "$DRY_RUN" = true ]; then
-        info "DRY-RUN: 将创建目录 $CURSOR_SKILL_DIR"
-        info "DRY-RUN: 将复制 $SOURCE_SKILL_FILE -> $CURSOR_SKILL_FILE"
+        info "DRY-RUN: 将创建目录 $CURSOR_RULES_DIR"
+        info "DRY-RUN: 将复制 $SOURCE_SKILL_FILE -> $CURSOR_RULE_FILE"
         return 0
     fi
 
-    mkdir -p "$CURSOR_SKILL_DIR"
-    cp "$SOURCE_SKILL_FILE" "$CURSOR_SKILL_FILE"
+    mkdir -p "$CURSOR_RULES_DIR"
+    cp "$SOURCE_SKILL_FILE" "$CURSOR_RULE_FILE"
 
-    if [ -d "$SOURCE_TEMPLATES_DIR" ]; then
-        mkdir -p "$CURSOR_SKILL_DIR/templates"
-        cp -r "$SOURCE_TEMPLATES_DIR"/* "$CURSOR_SKILL_DIR/templates/" 2>/dev/null || true
-        info "模板文件已安装到: $CURSOR_SKILL_DIR/templates/"
-    fi
-
-    success "Cursor Skill 安装完成: $CURSOR_SKILL_FILE"
+    success "Cursor Rules 安装完成: $CURSOR_RULE_FILE"
 }
 
 # 更新 Cursor MCP 配置
@@ -334,7 +428,7 @@ configure_cursor_mcp() {
     fi
 
     local cursor_mcp_file="$cursor_dir/mcp.json"
-    local script_mcp_file="$SCRIPT_DIR/3.MCP.txt"
+    local script_mcp_file="$SCRIPT_DIR/mcp-config.json"
 
     if [ ! -f "$script_mcp_file" ]; then
         warn "未找到 MCP 配置模板: $script_mcp_file"
@@ -362,18 +456,21 @@ EOF
     success "Cursor MCP 配置指南完成"
 }
 
-# 验证 Cursor 安装
 verify_cursor() {
+    if [ "$DRY_RUN" = true ]; then
+        info "DRY-RUN: 跳过验证"
+        return 0
+    fi
+
     info "验证 Cursor 安装..."
 
-    if [ ! -f "$CURSOR_SKILL_FILE" ]; then
+    if [ ! -f "$CURSOR_RULE_FILE" ]; then
         error "Cursor 规则文件不存在"
         return 1
     fi
 
-    info "✓ Cursor 规则文件存在"
+    info "✓ Cursor 规则文件存在: $CURSOR_RULE_FILE"
 
-    # 检查 MCP 配置
     local cursor_mcp_file="$HOME/.cursor/mcp.json"
     if [ -f "$cursor_mcp_file" ]; then
         local mcp_count=$(grep -c "context7\|sequential-thinking\|mcp-feedback-enhanced" "$cursor_mcp_file" || echo "0")
@@ -393,7 +490,6 @@ verify_cursor() {
 # 主流程
 ################################################################################
 
-# 显示帮助
 show_help() {
     cat << EOF
 编程助手 Skill 一键安装脚本 v${VERSION}
@@ -403,6 +499,7 @@ show_help() {
 
 选项:
     --opencode              仅安装到 OpenCode
+    --claude-code           仅安装到 Claude Code
     --cursor                仅安装到 Cursor
     --with-mcp              同时配置 MCP 服务器
     --all                   完整安装（推荐）
@@ -414,48 +511,56 @@ show_help() {
     $SCRIPT_NAME                    # 交互式安装
     $SCRIPT_NAME --all --with-mcp   # 完整安装（推荐）
     $SCRIPT_NAME --opencode         # 仅安装 OpenCode
+    $SCRIPT_NAME --claude-code      # 仅安装 Claude Code
+    $SCRIPT_NAME --cursor           # 仅安装 Cursor
     $SCRIPT_NAME --dry-run          # 预览安装
 
 安装路径:
-    OpenCode: $OPENCODE_SKILL_FILE
-    Cursor:   $CURSOR_SKILL_FILE
+    OpenCode:    $OPENCODE_SKILL_FILE
+    Claude Code: $CLAUDE_CODE_SKILL_FILE
+    Cursor:      $CURSOR_RULE_FILE
 
 更多信息: https://github.com/your-org/programming-assistant-skill
 EOF
 }
 
-# 卸载
 uninstall() {
     info "开始卸载..."
 
-    # 卸载 OpenCode
     if [ -d "$OPENCODE_SKILL_DIR" ]; then
         info "卸载 OpenCode Skill..."
-        backup_file "$OPENCODE_SKILL_DIR" "opencode"
+        backup_file "$OPENCODE_SKILL_FILE" "opencode"
         rm -rf "$OPENCODE_SKILL_DIR"
         success "OpenCode Skill 已卸载"
     else
         info "OpenCode Skill 未安装"
     fi
 
-    # 卸载 Cursor
-    if [ -f "$CURSOR_SKILL_FILE" ]; then
-        info "卸载 Cursor Skill..."
-        backup_file "$CURSOR_SKILL_FILE" "cursor"
-        rm -f "$CURSOR_SKILL_FILE"
-        success "Cursor Skill 已卸载"
+    if [ -d "$CLAUDE_CODE_SKILL_DIR" ]; then
+        info "卸载 Claude Code Skill..."
+        backup_file "$CLAUDE_CODE_SKILL_FILE" "claude_code"
+        rm -rf "$CLAUDE_CODE_SKILL_DIR"
+        success "Claude Code Skill 已卸载"
     else
-        info "Cursor Skill 未安装"
+        info "Claude Code Skill 未安装"
+    fi
+
+    if [ -f "$CURSOR_RULE_FILE" ]; then
+        info "卸载 Cursor Rules..."
+        backup_file "$CURSOR_RULE_FILE" "cursor"
+        rm -f "$CURSOR_RULE_FILE"
+        success "Cursor Rules 已卸载"
+    else
+        info "Cursor Rules 未安装"
     fi
 
     success "卸载完成"
     exit 0
 }
 
-# 主函数
 main() {
-    # 解析参数
     local install_opencode=false
+    local install_claude_code=false
     local install_cursor=false
     local configure_mcp=false
     local dry_run=false
@@ -464,6 +569,10 @@ main() {
         case $1 in
             --opencode)
                 install_opencode=true
+                shift
+                ;;
+            --claude-code)
+                install_claude_code=true
                 shift
                 ;;
             --cursor)
@@ -476,6 +585,7 @@ main() {
                 ;;
             --all)
                 install_opencode=true
+                install_claude_code=true
                 install_cursor=true
                 configure_mcp=true
                 shift
@@ -509,32 +619,35 @@ main() {
         warn "DRY-RUN 模式：不会实际执行任何操作"
     fi
 
-    # 检查源文件
     check_source_file
 
-    # 如果没有指定平台，交互式选择
-    if [ "$install_opencode" = false ] && [ "$install_cursor" = false ]; then
+    if [ "$install_opencode" = false ] && [ "$install_claude_code" = false ] && [ "$install_cursor" = false ]; then
         separator
         info "选择要安装的平台:"
         info "1) OpenCode"
-        info "2) Cursor"
-        info "3) 两个都安装"
-        info "4) 退出"
+        info "2) Claude Code"
+        info "3) Cursor"
+        info "4) 全部安装"
+        info "5) 退出"
         separator
 
-        read -p "请选择 [1-4]: " choice
+        read -p "请选择 [1-5]: " choice
         case $choice in
             1)
                 install_opencode=true
                 ;;
             2)
-                install_cursor=true
+                install_claude_code=true
                 ;;
             3)
-                install_opencode=true
                 install_cursor=true
                 ;;
             4)
+                install_opencode=true
+                install_claude_code=true
+                install_cursor=true
+                ;;
+            5)
                 info "退出安装"
                 exit 0
                 ;;
@@ -544,13 +657,11 @@ main() {
                 ;;
         esac
 
-        # 询问是否配置 MCP
         if confirm "是否配置 MCP 服务器？"; then
             configure_mcp=true
         fi
     fi
 
-    # 安装 OpenCode
     if [ "$install_opencode" = true ]; then
         separator
         info "=== 安装 OpenCode Skill ==="
@@ -567,10 +678,20 @@ main() {
         fi
     fi
 
-    # 安装 Cursor
+    if [ "$install_claude_code" = true ]; then
+        separator
+        info "=== 安装 Claude Code Skill ==="
+        separator
+
+        if check_claude_code; then
+            install_claude_code_skill
+            verify_claude_code
+        fi
+    fi
+
     if [ "$install_cursor" = true ]; then
         separator
-        info "=== 安装 Cursor Skill ==="
+        info "=== 安装 Cursor Rules ==="
         separator
 
         if check_cursor; then
@@ -591,26 +712,26 @@ main() {
     if [ "$DRY_RUN" = false ]; then
         info "安装位置:"
         if [ -f "$OPENCODE_SKILL_FILE" ]; then
-            info "  OpenCode: $OPENCODE_SKILL_FILE"
+            info "  OpenCode:    $OPENCODE_SKILL_FILE"
         fi
-        if [ -f "$CURSOR_SKILL_FILE" ]; then
-            info "  Cursor:   $CURSOR_SKILL_FILE"
+        if [ -f "$CLAUDE_CODE_SKILL_FILE" ]; then
+            info "  Claude Code: $CLAUDE_CODE_SKILL_FILE"
+        fi
+        if [ -f "$CURSOR_RULE_FILE" ]; then
+            info "  Cursor:      $CURSOR_RULE_FILE"
         fi
 
         info ""
         info "后续步骤:"
-        info "1. 重启 OpenCode 和 Cursor 以使更改生效"
-        info "2. 在 OpenCode 中使用: skill({ name: 'programming-assistant' })"
-        info "3. 在 Cursor 中直接使用，无需额外配置"
-        info ""
-        if [ "$install_opencode" = true ] && [ "$install_cursor" = true ]; then
-            info "如有问题，请查看备份目录:"
-            info "  OpenCode: $OPENCODE_BACKUP_DIR"
-            info "  Cursor:   $CURSOR_BACKUP_DIR"
-        elif [ "$install_opencode" = true ]; then
-            info "如有问题，请查看备份目录: $OPENCODE_BACKUP_DIR"
-        elif [ "$install_cursor" = true ]; then
-            info "如有问题，请查看备份目录: $CURSOR_BACKUP_DIR"
+        info "1. 重启相应的 IDE/CLI 以使更改生效"
+        if [ "$install_opencode" = true ]; then
+            info "2. 在 OpenCode 中使用: /programming-assistant"
+        fi
+        if [ "$install_claude_code" = true ]; then
+            info "2. 在 Claude Code 中使用: /programming-assistant"
+        fi
+        if [ "$install_cursor" = true ]; then
+            info "2. 在 Cursor 中全局规则自动生效"
         fi
     fi
 }

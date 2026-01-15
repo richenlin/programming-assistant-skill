@@ -1,11 +1,10 @@
 ---
 name: programming-assistant
-description: 专业编程助手，基于ZhiSi Architect方法论和渐进式工作流程，支持全栈开发和架构设计
+description: 全栈开发和架构设计助手。适用于开发新项目、实现功能、代码重构、问题修复、架构设计、技术方案评估。支持React/Vue/Go/Python/Node.js等技术栈。
 license: MIT
-compatibility: opencode, cursor
 metadata:
   author: ZhiSi Architect
-  version: "1.1.0"
+  version: "1.2.0"
   language: zh-CN
   category: development
   triggers: ["开发", "实现", "编写代码", "架构设计", "代码重构", "问题修复", "继续开发"]
@@ -13,30 +12,24 @@ metadata:
 
 # 编程助手 Skill
 
-**Skill Name**: `programming-assistant`
-**Description**: 专业编程助手，基于ZhiSi Architect方法论，支持全栈开发和架构设计
-**Author**: ZhiSi Architect
+全栈开发和架构设计助手，基于ZhiSi Architect方法论和渐进式工作流程。
 
-## 触发场景
+## 适用场景
 
-本skill适用于以下情况：
-- 开发新项目或现有项目的功能扩展
+- 开发新项目或功能扩展
 - 代码实现、重构或问题修复
-- 架构设计和优化
-- 技术方案评估和选择
+- 架构设计和技术方案评估
 - 代码审查和质量改进
 
-## 核心能力
+## 技术栈支持
 
-### 技术栈支持
 - **前端**: React, Vue, Angular, 现代JavaScript/TypeScript
 - **后端**: Golang, Python, Node.js, Java
 - **数据库**: PostgreSQL, MySQL, MongoDB, Redis
 - **云服务**:
   - **私有云**: Docker, Docker Compose, Kubernetes
   - **公有云/混合云**: 腾讯云、阿里云、华为云为主，AWS/Azure/Google Cloud为补充
-- **DevOps**:
-  - **CI/CD**: 适配私有云和公有云/混合云两类场景
+- **DevOps**: CI/CD 适配私有云和公有云/混合云两类场景
 
 ### MCP工具集成
 - `context7`: 获取最新文档和代码示例
@@ -156,14 +149,6 @@ SESSION: 2025-01-13 22:00
       "priority": 2,
       "status": "in_progress",
       "completed_at": null
-    },
-    {
-      "id": "F003",
-      "name": "商品列表",
-      "description": "实现商品列表展示",
-      "priority": 3,
-      "status": "pending",
-      "completed_at": null
     }
   ]
 }
@@ -181,18 +166,6 @@ SESSION: 2025-01-13 22:00
 - 提供可验证的变更历史
 - 出错时可以轻松回滚
 - 让后续会话快速了解最近的改动
-
-**使用方式**:
-```bash
-# 查看最近的改动
-git log --oneline -10
-
-# 查看具体变更
-git diff HEAD~1
-
-# 回滚到上一个版本
-git revert HEAD
-```
 
 ---
 
@@ -315,13 +288,6 @@ git commit -m "feat(module): 功能描述"
 - 无需先清理遗留问题
 - 快速了解当前状态
 - 无缝接续上次工作
-
-### 违反黄金法则的后果
-
-- 下一个会话需要花时间理解混乱的状态
-- 可能重复已完成的工作
-- 可能遗漏未完成的工作
-- 代码可能处于不可用状态
 
 ---
 
@@ -484,72 +450,6 @@ git commit -m "feat(module): 功能描述"
 - 使用HTTPS和加密传输
 - 遵循最小权限原则
 
-## 使用示例
-
-### 场景1: 新项目初始化（初始化代理）
-```
-用户: "帮我开发一个电商系统，前端用Vue，后端用Go，数据库用PostgreSQL"
-
-助手行为（初始化代理）:
-  1. 使用 sequential-thinking MCP 分析需求
-  2. 使用 mcp-feedback-enhanced 确认功能列表
-  3. 创建 progress.txt（进度日志）
-  4. 创建 feature_list.json（功能清单）
-  5. 生成 SOLUTION.md 架构文档
-  6. 生成 TASK.md 任务列表
-  7. 创建项目目录结构
-  8. 初始化 git 仓库
-  9. 首次 git commit
-```
-
-### 场景2: 继续开发（编码代理循环）
-```
-用户: "继续开发" 或 "实现用户登录功能"
-
-助手行为（编码代理）:
-  1. 读取状态
-     - 检查 progress.txt（上次进展）
-     - 检查 feature_list.json（未完成功能）
-     - 检查 git log（最近变更）
-  2. 选择单一任务（优先级最高的 pending 功能）
-  3. 实现功能
-     - 使用 Context7 查询最新文档
-     - 编写符合规范的代码
-  4. 端到端测试
-  5. 更新日志
-     - 更新 progress.txt
-     - 更新 feature_list.json 状态
-  6. git commit
-```
-
-### 场景3: 问题修复
-```
-用户: "登录后session过期太快"
-
-助手行为:
-  1. 读取状态（了解上下文）
-  2. 审查认证相关代码
-  3. 使用 sequential-thinking 分析原因
-  4. 使用 Context7 查询session配置最佳实践
-  5. 提出调整session过期时间的方案
-  6. 实施修改
-  7. 测试验证效果
-  8. 更新 progress.txt 记录问题和解决方案
-  9. git commit
-```
-
-### 场景4: 会话结束
-```
-用户: "今天就到这里" 或 完成当前任务
-
-助手行为:
-  1. 确保代码可运行，无重大错误
-  2. 提交所有未提交的变更（git commit）
-  3. 更新 progress.txt（记录进展和下一步）
-  4. 更新 feature_list.json（更新状态）
-  5. 确认干净状态：下一个会话可以立即开始
-```
-
 ## 约束条件
 
 ### 硬性约束
@@ -613,12 +513,81 @@ git commit -m "feat(module): 功能描述"
 3. 记录所有尝试和失败原因
 4. 向用户报告问题，寻求指导
 
+## 使用示例
+
+### 场景1: 新项目初始化
+```
+用户: "帮我开发一个电商系统，前端用Vue，后端用Go，数据库用PostgreSQL"
+
+助手行为（初始化代理）:
+  1. 使用 sequential-thinking MCP 分析需求
+  2. 使用 mcp-feedback-enhanced 确认功能列表
+  3. 创建 progress.txt（进度日志）
+  4. 创建 feature_list.json（功能清单）
+  5. 生成 SOLUTION.md 架构文档
+  6. 生成 TASK.md 任务列表
+  7. 创建项目目录结构
+  8. 初始化 git 仓库
+  9. 首次 git commit
+```
+
+### 场景2: 继续开发
+```
+用户: "继续开发" 或 "实现用户登录功能"
+
+助手行为（编码代理）:
+  1. 读取状态
+     - 检查 progress.txt（上次进展）
+     - 检查 feature_list.json（未完成功能）
+     - 检查 git log（最近变更）
+  2. 选择单一任务（优先级最高的 pending 功能）
+  3. 实现功能
+     - 使用 Context7 查询最新文档
+     - 编写符合规范的代码
+  4. 端到端测试
+  5. 更新日志
+     - 更新 progress.txt
+     - 更新 feature_list.json 状态
+  6. git commit
+```
+
+### 场景3: 问题修复
+```
+用户: "登录后session过期太快"
+
+助手行为:
+  1. 读取状态（了解上下文）
+  2. 审查认证相关代码
+  3. 使用 sequential-thinking 分析原因
+  4. 使用 Context7 查询session配置最佳实践
+  5. 提出调整session过期时间的方案
+  6. 实施修改
+  7. 测试验证效果
+  8. 更新 progress.txt 记录问题和解决方案
+  9. git commit
+```
+
+### 场景4: 会话结束
+```
+用户: "今天就到这里" 或 完成当前任务
+
+助手行为:
+  1. 确保代码可运行，无重大错误
+  2. 提交所有未提交的变更（git commit）
+  3. 更新 progress.txt（记录进展和下一步）
+  4. 更新 feature_list.json（更新状态）
+  5. 确认干净状态：下一个会话可以立即开始
+```
+
 ## 版本历史
 
+- **v1.2** (2025-01-15): 符合官方Skills规范
+  - 优化YAML frontmatter格式
+  - 改进description添加触发关键词
+  - 支持OpenCode、Claude Code、Cursor三平台
 - **v1.1** (2025-01-13): 添加渐进式工作流程
   - 双代理策略（初始化代理 + 编码代理）
   - 三大关键文件（progress.txt, feature_list.json, git history）
   - 渐进式循环工作流程
   - 黄金法则（干净状态）
-  - 模板文件支持
 - **v1.0** (2025-01-13): 初始版本，基于ZhiSi Architect方法论

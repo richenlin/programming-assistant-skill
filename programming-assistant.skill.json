@@ -1,6 +1,6 @@
 {
   "name": "programming-assistant",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "专业编程助手 - 基于ZhiSi Architect方法论的全栈开发和架构设计工具",
   "author": "ZhiSi Architect",
   "created": "2025-01-13",
@@ -275,6 +275,25 @@
   },
 
   "changelog": [
+    {
+      "version": "1.2.0",
+      "date": "2025-01-15",
+      "changes": [
+        "统一版本号管理，创建 VERSION 文件作为单一版本源",
+        "优化文档结构，明确各文档职责",
+        "修复版本不一致问题",
+        "改进 MCP 配置管理"
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2025-01-13",
+      "changes": [
+        "添加渐进式工作流程",
+        "双代理策略（初始化代理 + 编码代理）",
+        "三大关键文件（progress.txt, feature_list.json, git history）"
+      ]
+    },
     {
       "version": "1.0.0",
       "date": "2025-01-13",

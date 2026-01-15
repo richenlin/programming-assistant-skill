@@ -97,11 +97,10 @@ mkdir -p .opencode/skill/programming-assistant
 cp /path/to/SKILL.md .opencode/skill/programming-assistant/
 ```
 
-**重要提示**: 
+**重要提示**:
 - ✅ 全局路径: `~/.config/opencode/skill/<name>/SKILL.md`
 - ✅ 项目路径: `.opencode/skill/<name>/SKILL.md`
 - ❌ 错误路径: `~/.opencode/skills/`（注意不是这个！）
-- 📖 详细说明: [OPENCODE-SKILLS-正确配置.md](OPENCODE-SKILLS-正确配置.md)
 
 #### 如果你使用Cursor
 
@@ -262,10 +261,9 @@ EOF
 
 或使用安装脚本：
 ```bash
-./install.sh --opencode --with-mcp
+./install.sh --opencode --mcp-auto
 ```
 
-详细说明请查看 [OPENCODE-SKILLS-正确配置.md](OPENCODE-SKILLS-正确配置.md)。
 
 ## 在Cursor中使用
 
@@ -417,7 +415,7 @@ A: 替换对应的skill文件后，需要**重启OpenCode**才能使更改生效
 ### Q: MCP工具不工作怎么办？
 A: 检查以下内容：
 1. 确认已安装 `npx` 和 `uvx` 运行时
-2. 参考 `3.MCP.txt` 中的配置示例
+2. 参考 `mcp-config.json` 中的配置示例
 3. 尝试手动注册 MCP 服务器（见上方"故障排查"）
 4. 确认 `programming-assistant.skill.json` 文件正确加载
 
@@ -436,14 +434,17 @@ A: 编辑 `programming-assistant.skill.json`，将对应工具的 `enabled` 设�
 ## 文件说明
 
 ```
-SKILL.md                          # OpenCode/Cursor 规范格式的 skill 文件（新增）
-install.sh                        # 一键安装脚本（新增）
-uninstall.sh                      # 卸载脚本（新增）
-programming-assistant.skill.md     # 传统格式 skill 文件（保留，作为备份）
-programming-assistant.skill.json    # skill 配置文件（保留，作为元数据）
-README.md                         # 项目说明文档（本文件）
-QUICK-START.md                   # 快速开始指南
-3.MCP.txt                        # MCP 服务器配置示例
+SKILL.md                          # OpenCode/Cursor 规范格式的 skill 文件
+VERSION                           # 版本号（单一版本源）
+mcp-config.json                    # MCP 服务器配置模板
+install.sh                        # 一键安装脚本
+uninstall.sh                      # 卸载脚本
+programming-assistant.skill.json    # skill 配置文件
+README.md                         # 项目说明文档
+QUICK-START.md                   # 快速开始指南（本文件）
+templates/                        # 模板文件目录
+  ├── progress.txt                # 进度日志模板
+  └── feature_list.json          # 功能清单模板
 ```
 
 ## 获取帮助
