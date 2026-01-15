@@ -1,14 +1,5 @@
 # 编程助手 Skill - 使用指南
 
-> ⚠️ **重要更新**: OpenCode Skills 正确配置路径（2026-01-14）
-> 
-> 根据 [OpenCode 官方文档](https://opencode.ai/docs/skills/)：
-> - ✅ **正确路径**: `~/.config/opencode/skill/<name>/SKILL.md`
-> - ❌ **错误路径**: `~/.opencode/skills/`（注意 `config` 和单数 `skill`）
-> 
-> 详细说明：
-> - OpenCode 用户请查看: [OPENCODE-SKILLS-正确配置.md](OPENCODE-SKILLS-正确配置.md)
-> - Cursor 用户请查看: [QUICK-START.md](QUICK-START.md#如果你使用cursor)
 
 ## 概述
 
