@@ -68,8 +68,6 @@
 ### 详细文档
 
 - **快速开始**: [QUICK-START.md](QUICK-START.md)
-- **MCP 配置**: [MCP-SERVERS.md](MCP-SERVERS.md)
-- **文档结构**: [DOCS-STRUCTURE.md](DOCS-STRUCTURE.md)
 - **Skill 详细说明**: [SKILL.md](SKILL.md)
 - **OpenCode 配置**: [OpenCode Skills 官方文档](https://opencode.ai/docs/skills/)
 - **Claude Code 配置**: [Claude Code Skills 官方文档](https://docs.anthropic.com/en/docs/claude-code/skills)
