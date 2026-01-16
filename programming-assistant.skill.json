@@ -1,6 +1,6 @@
 {
   "name": "programming-assistant",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "专业编程助手 - 基于ZhiSi Architect方法论的全栈开发和架构设计工具",
   "author": "ZhiSi Architect",
   "created": "2025-01-13",
@@ -35,10 +35,6 @@
     "sequential-thinking": {
       "enabled": true,
       "purpose": "深度分析和问题拆解，在实施前彻底考虑每个步骤"
-    },
-    "mcp-feedback-enhanced": {
-      "enabled": true,
-      "purpose": "与用户保持密切沟通，根据反馈调整功能和设计"
     }
   },
 
@@ -49,7 +45,7 @@
         "读取项目根目录的 SOLUTION.md 和 TASK.md（如果存在）",
         "如果文件不存在：",
         "  - 使用 sequential-thinking MCP 分析需求",
-        "  - 使用 mcp-feedback-enhanced 与用户确认理解",
+        "  - 自主分析需求，评估多个方案，选择最优解决方案",
         "  - 生成 SOLUTION.md 架构文档",
         "  - 将 SOLUTION.md 拆解成 TASK.md 任务列表",
         "理解架构设计和技术选型",
@@ -63,7 +59,7 @@
       "steps": [
         "深入理解需求",
         "使用 sequential-thinking 分析需求完整性",
-        "使用 mcp-feedback-enhanced 与用户确认理解",
+        "自主评估多个方案，比较利弊，选择最优方案",
         "识别缺失需求或缺口",
         "选择最简单的解决方案"
       ]
@@ -84,11 +80,32 @@
         "彻底审查相关代码",
         "使用 sequential-thinking 深度分析",
         "使用 Context7 查询相关文档",
-        "提出多个解决方案并评估",
-        "实施最优方案并测试"
+        "自主提出多个解决方案并评估利弊",
+        "选择最优方案实施并测试"
       ]
     }
   ],
+
+  "autonomous_decision_making": {
+    "description": "自主决策流程 - 非必要不中断任务",
+    "principles": [
+      "自主分析问题，生成多个候选方案",
+      "比较各方案的优缺点和适用场景",
+      "选择最优方案执行，无需等待用户确认",
+      "仅在以下情况中断任务并请求用户输入：",
+      "  - 需求存在关键歧义，无法合理推断",
+      "  - 多个方案各有重大取舍，需用户做出业务决策",
+      "  - 涉及敏感操作（如删除数据、重大架构变更）"
+    ],
+    "workflow": [
+      "1. 分析问题 → 识别关键约束和目标",
+      "2. 生成方案 → 至少2-3个可行方案",
+      "3. 评估方案 → 从可行性、复杂度、维护性、性能等维度评估",
+      "4. 选择执行 → 选择最优方案立即执行",
+      "5. 验证结果 → 测试确保方案有效",
+      "6. 记录决策 → 在 progress.txt 中记录选择理由"
+    ]
+  },
 
   "rules": {
     "language": {
@@ -159,7 +176,7 @@
         "检查 SOLUTION.md 和 TASK.md 是否存在",
         "如果不存在：",
         "  - 使用 sequential-thinking MCP 分析需求",
-        "  - 使用 mcp-feedback-enhanced 确认功能列表",
+        "  - 自主评估技术方案（微服务vs单体、REST vs GraphQL等），选择最优方案",
         "  - 生成 SOLUTION.md 架构文档",
         "  - 将 SOLUTION.md 拆解成 TASK.md 任务列表",
         "创建项目目录结构",
@@ -187,8 +204,8 @@
         "审查认证相关代码",
         "使用 sequential-thinking 分析原因",
         "使用 Context7 查询session配置最佳实践",
-        "提出调整session过期时间的方案",
-        "实施修改",
+        "自主评估方案（调整过期时间、使用refresh token、改用JWT等）",
+        "选择最优方案实施修改",
         "测试验证效果"
       ]
     }
@@ -219,7 +236,7 @@
     {
       "priority": 1,
       "task": "需求分析",
-      "tools": ["sequential-thinking", "mcp-feedback-enhanced"]
+      "tools": ["sequential-thinking"]
     },
     {
       "priority": 2,
@@ -238,8 +255,8 @@
     },
     {
       "priority": 5,
-      "task": "用户交互",
-      "tools": ["mcp-feedback-enhanced", "todowrite"]
+      "task": "任务管理",
+      "tools": ["todowrite"]
     }
   ],
 
@@ -249,13 +266,14 @@
       "不得过度工程化",
       "不得进行无关编辑",
       "不得破坏现有功能",
-      "不得绕过测试验证"
+      "不得绕过测试验证",
+      "非必要不中断任务执行"
     ],
     "soft": [
       "优先选择现有库而非新依赖",
       "优先小改动而非大重构",
-      "不确定时先询问用户",
-      "遵循代码库现有风格"
+      "遵循代码库现有风格",
+      "自主决策，仅在关键歧义时询问用户"
     ]
   },
 
@@ -263,7 +281,7 @@
     "理解优于实施 - 先彻底理解需求，再动手实现",
     "测试驱动 - 每完成一个单元立即测试",
     "最小修改 - 每次改动尽可能小，降低风险",
-    "持续反馈 - 与用户保持沟通，及时调整方向",
+    "自主决策 - 分析多个方案，选择最优方案执行，非必要不中断",
     "文档同步 - 代码和文档保持同步更新",
     "安全第一 - 始终考虑安全性和数据保护",
     "性能优化 - 在保证功能的前提下优化性能"
@@ -284,6 +302,16 @@
   },
 
   "changelog": [
+    {
+      "version": "1.3.0",
+      "date": "2025-01-16",
+      "changes": [
+        "移除 mcp-feedback-enhanced MCP，避免打断编程循环",
+        "新增自主决策流程 - 自动分析多个方案并选择最优解执行",
+        "更新约束规则 - 非必要不中断任务执行",
+        "简化工具优先级配置"
+      ]
+    },
     {
       "version": "1.2.1",
       "date": "2025-01-16",
@@ -320,7 +348,7 @@
       "changes": [
         "初始版本发布",
         "基于ZhiSi Architect方法论",
-        "集成Context7、sequential-thinking、mcp-feedback-enhanced MCP服务器",
+        "集成Context7、sequential-thinking MCP服务器",
         "支持OpenCode和Cursor平台"
       ]
     }

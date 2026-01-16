@@ -27,7 +27,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
-VERSION="1.2.0"
+VERSION="1.3.0"
 
 # OpenCode 路径（官方文档：https://opencode.ai/docs/skills/）
 OPENCODE_SKILLS_DIR="$HOME/.config/opencode/skill"
@@ -199,7 +199,7 @@ uninstall_opencode_mcp() {
         return 1
     fi
 
-    local mcp_servers=("context7" "sequential-thinking" "mcp-feedback-enhanced")
+    local mcp_servers=("context7" "sequential-thinking")
 
     for server in "${mcp_servers[@]}"; do
         info "卸载 MCP 服务器: $server"
@@ -271,7 +271,6 @@ uninstall_cursor_mcp() {
     info "以下 MCP 服务器可能需要清理:"
     info "  - context7"
     info "  - sequential-thinking"
-    info "  - mcp-feedback-enhanced"
     info ""
     info "提示: 编辑 mcp.json 文件，删除对应的 mcpServers 配置项"
 }

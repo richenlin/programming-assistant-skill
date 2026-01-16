@@ -16,16 +16,6 @@
       "autoApprove": [
         "sequentialthinking"
       ]
-    },
-    "mcp-feedback-enhanced": {
-      "command": "uvx",
-      "args": [
-        "mcp-feedback-enhanced@latest"
-      ],
-      "timeout": 600,
-      "autoApprove": [
-        "interactive_feedback"
-      ]
     }
   }
 }

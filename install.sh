@@ -27,7 +27,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
-VERSION="1.3.0"
+VERSION="1.4.0"
 
 # OpenCode 路径（官方文档：https://opencode.ai/docs/skills/）
 # OpenCode 支持两种路径：~/.config/opencode/skill/ 和 ~/.claude/skills/（Claude兼容）
@@ -209,12 +209,6 @@ check_mcp_tools() {
         all_available=false
     fi
 
-    # 检查 uvx
-    if ! command_exists uvx; then
-        missing_tools+=("uvx (需要Python的uv工具)")
-        all_available=false
-    fi
-
     if [ "$all_available" = false ]; then
         warn "以下MCP工具未安装:"
         for tool in "${missing_tools[@]}"; do
@@ -367,20 +361,6 @@ if "sequential-thinking" in mcp_config.get("mcpServers", {}):
         "enabled": True
     }
 
-# mcp-feedback-enhanced - 本地服务器 (使用 uvx)
-if "mcp-feedback-enhanced" in mcp_config.get("mcpServers", {}):
-    mfe_config = mcp_config["mcpServers"]["mcp-feedback-enhanced"]
-    opencode_mcp["mcp-feedback-enhanced"] = {
-        "type": "local",
-        "command": ["uvx", "mcp-feedback-enhanced@latest"],
-        "enabled": True,
-        "environment": {
-            "MCP_WEB_HOST": "127.0.0.1",
-            "MCP_WEB_PORT": "8765",
-            "MCP_DEBUG": "false"
-        }
-    }
-
 # 合并到主配置
 if "mcp" not in config:
     config["mcp"] = {}
@@ -407,7 +387,7 @@ print("OpenCode MCP 配置完成")
 PYTHON_SCRIPT
 
     success "OpenCode MCP 配置完成"
-    info "配置的服务器: context7, sequential-thinking, mcp-feedback-enhanced"
+    info "配置的服务器: context7, sequential-thinking"
 }
 
 verify_opencode() {
@@ -448,16 +428,15 @@ try:
     count = 0
     if 'context7' in mcp_servers: count += 1
     if 'sequential-thinking' in mcp_servers: count += 1
-    if 'mcp-feedback-enhanced' in mcp_servers: count += 1
     print(count)
 except:
     print(0)
 " 2>/dev/null || echo "0")
 
-            if [ "$mcp_count" -eq 3 ]; then
-                info "✓ MCP 配置完整 (3/3)"
+            if [ "$mcp_count" -eq 2 ]; then
+                info "✓ MCP 配置完整 (2/2)"
             elif [ "$mcp_count" -gt 0 ]; then
-                warn "MCP 配置部分完成 ($mcp_count/3)"
+                warn "MCP 配置部分完成 ($mcp_count/2)"
             else
                 warn "未检测到 MCP 配置"
             fi
@@ -676,7 +655,7 @@ print("Cursor MCP 配置完成")
 PYTHON_SCRIPT
 
     success "Cursor MCP 配置完成"
-    info "配置的服务器: context7, sequential-thinking, mcp-feedback-enhanced"
+    info "配置的服务器: context7, sequential-thinking"
 }
 
 verify_cursor() {
@@ -713,19 +692,19 @@ except:
     print(0)
 " 2>/dev/null || echo "0")
 
-            if [ "$mcp_count" -ge 3 ]; then
-                info "✓ MCP 配置完整 (3/3)"
+            if [ "$mcp_count" -ge 2 ]; then
+                info "✓ MCP 配置完整 (2/2)"
             elif [ "$mcp_count" -gt 0 ]; then
-                warn "MCP 配置部分完成 ($mcp_count/3)"
+                warn "MCP 配置部分完成 ($mcp_count/2)"
             else
                 warn "未检测到 MCP 配置"
             fi
         else
-            local mcp_count=$(grep -c "context7\|sequential-thinking\|mcp-feedback-enhanced" "$cursor_mcp_file" || echo "0")
-            if [ "$mcp_count" -ge 3 ]; then
+            local mcp_count=$(grep -c "context7\|sequential-thinking" "$cursor_mcp_file" || echo "0")
+            if [ "$mcp_count" -ge 2 ]; then
                 info "✓ MCP 配置已设置 ($mcp_count 个)"
             else
-                warn "MCP 配置未完全设置 ($mcp_count/3)"
+                warn "MCP 配置未完全设置 ($mcp_count/2)"
             fi
         fi
     else
@@ -750,7 +729,7 @@ show_help() {
     --opencode              仅安装到 OpenCode
     --claude-code           仅安装到 Claude Code
     --cursor                仅安装到 Cursor
-    --with-mcp              同时配置 MCP 服务器 (自动配置 context7, sequential-thinking, mcp-feedback-enhanced)
+    --with-mcp              同时配置 MCP 服务器 (自动配置 context7, sequential-thinking)
     --all                   完整安装（推荐）
     --dry-run               预览模式，不实际执行
     --uninstall             卸载已安装的 skill
@@ -778,7 +757,6 @@ MCP配置:
 MCP服务器:
     - context7: 文档搜索 (https://mcp.context7.com)
     - sequential-thinking: 结构化思考 (@modelcontextprotocol/server-sequential-thinking)
-    - mcp-feedback-enhanced: 交互反馈 (mcp-feedback-enhanced)
 
 更多信息: https://github.com/your-org/programming-assistant-skill
 EOF
