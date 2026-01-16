@@ -30,17 +30,19 @@ description: 启动编程助手模式，遵循ZhiSi Architect方法论进行全�
 ## 双代理策略
 
 ### 初始化代理 - 新项目时执行
-触发条件: `progress.txt` 或 `feature_list.json` 不存在
+触发条件: `SOLUTION.md` 或 `TASK.md` 不存在
 
 执行任务:
-1. 使用 sequential-thinking MCP 分析需求
-2. 使用 mcp-feedback-enhanced 与用户确认理解
-3. 创建 `progress.txt`（进度日志）
-4. 创建 `feature_list.json`（功能清单）
-5. 生成 SOLUTION.md 架构文档
-6. 生成 TASK.md 任务列表
-7. 初始化 git 仓库
-8. 首次 git commit
+1. 读取项目根目录的 `SOLUTION.md` 和 `TASK.md`（如果存在）
+2. 如果文件不存在：
+   - 使用 sequential-thinking MCP 分析需求
+   - 使用 mcp-feedback-enhanced 与用户确认理解
+   - 生成 `SOLUTION.md` 架构文档
+3. 将 `SOLUTION.md` 拆解成 `TASK.md` 任务列表
+4. 创建 `progress.txt`（进度日志）
+5. 创建 `feature_list.json`（功能清单）
+6. 初始化 git 仓库
+7. 首次 git commit
 
 ### 编码代理 - 渐进式开发循环
 触发条件: 关键文件存在
@@ -48,10 +50,11 @@ description: 启动编程助手模式，遵循ZhiSi Architect方法论进行全�
 循环执行:
 1. 读取状态（progress.txt, feature_list.json, git log）
 2. 选择单一任务（优先级最高的 pending 功能）
-3. 实现功能（使用 Context7 查询文档）
-4. 端到端测试
-5. 更新日志（progress.txt, feature_list.json）
-6. git commit
+3. 读取任务详情（从TASK.md按需读取当前任务的详细步骤、技术选型、代码片段）
+4. 实现功能（使用 Context7 查询文档）
+5. 端到端测试
+6. 更新日志（progress.txt, feature_list.json）
+7. git commit
 
 ---
 
@@ -83,6 +86,23 @@ SESSION: YYYY-MM-DD HH:MM
 }
 ```
 状态值: pending | in_progress | completed | blocked
+
+**与TASK.md的关系**:
+- TASK.md包含详细的实现步骤、技术选型、代码片段
+- 在开始开发时，TASK.md会被转化成feature_list.json
+- feature_list.json用于跟踪任务状态，只包含基本信息
+- 执行时按需读取TASK.md中当前步骤的详细内容（节省token）
+
+### TASK.md - 详细指南
+
+根据SOLUTION.md架构设计生成的任务列表，包含：
+- 详细的实现步骤
+- 技术选型说明
+- 代码片段示例
+
+使用策略：
+- 初始化时完整生成，然后转化为feature_list.json
+- 执行时按需读取当前任务的详细部分（节省token）
 
 ---
 

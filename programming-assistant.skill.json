@@ -46,10 +46,16 @@
     {
       "phase": "项目初始化",
       "steps": [
-        "读取 SOLUTION.md 和 TASK.md",
+        "读取项目根目录的 SOLUTION.md 和 TASK.md（如果存在）",
+        "如果文件不存在：",
+        "  - 使用 sequential-thinking MCP 分析需求",
+        "  - 使用 mcp-feedback-enhanced 与用户确认理解",
+        "  - 生成 SOLUTION.md 架构文档",
+        "  - 将 SOLUTION.md 拆解成 TASK.md 任务列表",
         "理解架构设计和技术选型",
         "检查并创建 README.md",
-        "使用 sequential-thinking MCP 拆解需求"
+        "创建 progress.txt 和 feature_list.json",
+        "初始化 git 仓库"
       ]
     },
     {
@@ -150,12 +156,15 @@
       "scenario": "新项目初始化",
       "input": "帮我开发一个电商系统，前端用Vue，后端用Go，数据库用PostgreSQL",
       "workflow": [
-        "使用 sequential-thinking MCP 分析需求",
-        "使用 mcp-feedback-enhanced 确认功能列表",
-        "生成 SOLUTION.md 架构文档",
-        "生成 TASK.md 任务列表",
+        "检查 SOLUTION.md 和 TASK.md 是否存在",
+        "如果不存在：",
+        "  - 使用 sequential-thinking MCP 分析需求",
+        "  - 使用 mcp-feedback-enhanced 确认功能列表",
+        "  - 生成 SOLUTION.md 架构文档",
+        "  - 将 SOLUTION.md 拆解成 TASK.md 任务列表",
         "创建项目目录结构",
-        "初始化配置文件"
+        "初始化配置文件",
+        "初始化 git 仓库"
       ]
     },
     {

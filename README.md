@@ -79,10 +79,17 @@
 ```
 输入: 新项目需求
 流程:
-  1. 读取项目根目录的 SOLUTION.md 和 TASK.md
-  2. 理解架构设计和技术选型
-  3. 检查 README.md，不存在则创建
-  4. 使用 sequential-thinking MCP 拆解需求
+  1. 读取项目根目录的 SOLUTION.md 和 TASK.md（如果存在）
+  2. 如果文件不存在：
+     - 使用 sequential-thinking MCP 分析需求
+     - 使用 mcp-feedback-enhanced 与用户确认理解
+     - 生成 SOLUTION.md 架构文档
+     - 将 SOLUTION.md 拆解成 TASK.md 任务列表（包含实现步骤、技术选型、代码片段）
+  3. 将 TASK.md 转化为 feature_list.json（只包含任务基本信息和状态）
+  4. 理解架构设计和技术选型
+  5. 检查 README.md，不存在则创建
+  6. 创建 progress.txt
+  7. 初始化 git 仓库
 输出: 项目初始化完成，准备开发
 ```
 
@@ -110,7 +117,7 @@
   6. 确认不破坏现有功能
   7. 使用 mcp-feedback-enhanced 获取用户反馈
 输出: 可测试的代码单元
-
+```
 ### 问题解决
 ```
 输入: 用户反馈的问题或错误
@@ -141,12 +148,16 @@
 ```
 
 **助手会自动**:
-1. 使用 sequential-thinking MCP 分析需求
-2. 使用 mcp-feedback-enhanced 与你确认功能列表
-3. 生成 SOLUTION.md 架构文档
-4. 生成 TASK.md 任务列表
-5. 创建项目目录结构
-6. 初始化配置文件
+1. 检查 SOLUTION.md 和 TASK.md 是否存在
+2. 如果不存在：
+   - 使用 sequential-thinking MCP 分析需求
+   - 使用 mcp-feedback-enhanced 与你确认功能列表
+   - 生成 SOLUTION.md 架构文档
+   - 将 SOLUTION.md 拆解成 TASK.md 任务列表
+3. 创建 progress.txt 和 feature_list.json
+4. 创建项目目录结构
+5. 初始化配置文件
+6. 初始化 git 仓库并首次提交
 
 ### 示例2: 功能实现
 
