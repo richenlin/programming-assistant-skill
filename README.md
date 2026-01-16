@@ -287,6 +287,13 @@
 
 ## 版本历史
 
+### v1.2.1 (2025-01-16)
+- 修复OpenCode skill未生效问题 - triggers字段已在metadata中
+- 添加command目录复制到OpenCode和Claude Code安装路径
+- 为Cursor创建兼容版本 - 移除YAML frontmatter
+- 添加MCP工具检查和降级机制 - 未安装时跳过MCP配置
+- 修复install.sh安装逻辑
+
 ### v1.2.0 (2025-01-15)
 - 统一版本号管理，创建 VERSION 文件作为单一版本源
 - 优化文档结构，明确各文档职责

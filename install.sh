@@ -27,7 +27,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
-VERSION="1.2.0"
+VERSION="1.2.1"
 
 # OpenCode 路径（官方文档：https://opencode.ai/docs/skills/）
 # OpenCode 支持两种路径：~/.config/opencode/skill/ 和 ~/.claude/skills/（Claude兼容）
@@ -51,6 +51,7 @@ CURSOR_RULE_FILE="$CURSOR_RULES_DIR/programming-assistant.md"
 SOURCE_SKILL_FILE="$SCRIPT_DIR/SKILL.md"
 SOURCE_LEGACY_SKILL_FILE="$SCRIPT_DIR/programming-assistant.skill.md"
 SOURCE_TEMPLATES_DIR="$SCRIPT_DIR/templates"
+SOURCE_COMMAND_DIR="$SCRIPT_DIR/command"
 SOURCE_REFERENCE_FILE="$SCRIPT_DIR/reference.md"
 SOURCE_EXAMPLES_FILE="$SCRIPT_DIR/examples.md"
 
@@ -197,6 +198,37 @@ check_cursor() {
     fi
 }
 
+# 检查 MCP 工具是否可用
+check_mcp_tools() {
+    local missing_tools=()
+    local all_available=true
+
+    # 检查 npx
+    if ! command_exists npx; then
+        missing_tools+=("npx (需要Node.js)")
+        all_available=false
+    fi
+
+    # 检查 uvx
+    if ! command_exists uvx; then
+        missing_tools+=("uvx (需要Python的uv工具)")
+        all_available=false
+    fi
+
+    if [ "$all_available" = false ]; then
+        warn "以下MCP工具未安装:"
+        for tool in "${missing_tools[@]}"; do
+            warn "  - $tool"
+        done
+        warn "MCP功能将不可用，但skill仍然可以正常使用"
+        warn "建议安装缺失的工具以启用完整MCP功能"
+        return 1
+    else
+        info "所有MCP工具已安装"
+        return 0
+    fi
+}
+
 ################################################################################
 # 安装 OpenCode Skill
 ################################################################################
@@ -240,12 +272,25 @@ install_opencode_skill() {
         info "模板文件已安装到: $OPENCODE_SKILL_DIR/templates/"
     fi
 
+    if [ -d "$SOURCE_COMMAND_DIR" ]; then
+        mkdir -p "$OPENCODE_SKILL_DIR/command"
+        cp -r "$SOURCE_COMMAND_DIR"/* "$OPENCODE_SKILL_DIR/command/" 2>/dev/null || true
+        info "命令文件已安装到: $OPENCODE_SKILL_DIR/command/"
+    fi
+
     success "OpenCode Skill 安装完成: $OPENCODE_SKILL_FILE"
 }
 
 # 配置 OpenCode MCP 服务器
 configure_opencode_mcp() {
     info "配置 OpenCode MCP 服务器..."
+
+    # 检查MCP工具
+    if ! check_mcp_tools; then
+        warn "MCP工具未完全安装，将跳过MCP配置"
+        warn "skill仍然可以使用，但MCP功能将不可用"
+        return 0
+    fi
 
     local opencode_mcp_file="$HOME/.config/opencode/mcp.json"
     local script_mcp_file="$SCRIPT_DIR/mcp-config.json"
@@ -354,6 +399,12 @@ install_claude_code_skill() {
         info "模板文件已安装到: $CLAUDE_CODE_SKILL_DIR/templates/"
     fi
 
+    if [ -d "$SOURCE_COMMAND_DIR" ]; then
+        mkdir -p "$CLAUDE_CODE_SKILL_DIR/command"
+        cp -r "$SOURCE_COMMAND_DIR"/* "$CLAUDE_CODE_SKILL_DIR/command/" 2>/dev/null || true
+        info "命令文件已安装到: $CLAUDE_CODE_SKILL_DIR/command/"
+    fi
+
     success "Claude Code Skill 安装完成: $CLAUDE_CODE_SKILL_FILE"
 }
 
@@ -406,12 +457,15 @@ install_cursor_skill() {
 
     if [ "$DRY_RUN" = true ]; then
         info "DRY-RUN: 将创建目录 $CURSOR_RULES_DIR"
-        info "DRY-RUN: 将复制 $SOURCE_SKILL_FILE -> $CURSOR_RULE_FILE"
+        info "DRY-RUN: 将复制 $SOURCE_SKILL_FILE (去除frontmatter) -> $CURSOR_RULE_FILE"
         return 0
     fi
 
     mkdir -p "$CURSOR_RULES_DIR"
-    cp "$SOURCE_SKILL_FILE" "$CURSOR_RULE_FILE"
+    
+    # 移除YAML frontmatter后复制到Cursor规则文件
+    # 使用awk跳过第一个---到第二个---之间的所有行
+    awk '/^---$/ { skip++; next; } skip == 1 { next; } { print }' "$SOURCE_SKILL_FILE" > "$CURSOR_RULE_FILE"
 
     success "Cursor Rules 安装完成: $CURSOR_RULE_FILE"
 }
@@ -419,6 +473,13 @@ install_cursor_skill() {
 # 更新 Cursor MCP 配置
 configure_cursor_mcp() {
     info "配置 Cursor MCP 服务器..."
+
+    # 检查MCP工具
+    if ! check_mcp_tools; then
+        warn "MCP工具未完全安装，将跳过MCP配置"
+        warn "skill仍然可以使用，但MCP功能将不可用"
+        return 0
+    fi
 
     # Cursor MCP 配置在 ~/.cursor/mcp.json，不是 ~/.claude/
     local cursor_dir="$HOME/.cursor"

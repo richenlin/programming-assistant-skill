@@ -4,7 +4,7 @@ description: 全栈开发和架构设计助手。适用于开发新项目、实�
 license: MIT
 metadata:
   author: ZhiSi Architect
-  version: "1.2.0"
+  version: "1.2.1"
   language: zh-CN
   category: development
   triggers: ["开发", "实现", "编写代码", "架构设计", "代码重构", "问题修复", "继续开发"]
