@@ -12,10 +12,6 @@
     "sequential-thinking": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
-    },
-    "mcp-feedback-enhanced": {
-      "command": "uvx",
-      "args": ["mcp-feedback-enhanced@latest"]
     }
   }
 }

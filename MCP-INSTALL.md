@@ -8,7 +8,6 @@ MCP (Model Context Protocol) 是一个协议,允许 AI 助手通过标准化的�
 
 1. **context7** - 文档搜索工具
 2. **sequential-thinking** - 结构化思考工具
-3. **mcp-feedback-enhanced** - 交互反馈工具
 
 ## OpenCode MCP 配置
 
@@ -32,16 +31,6 @@ OpenCode 使用以下 JSON 格式配置 MCP 服务器:
       "type": "local",
       "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
       "enabled": true
-    },
-    "mcp-feedback-enhanced": {
-      "type": "local",
-      "command": ["uvx", "mcp-feedback-enhanced@latest"],
-      "enabled": true,
-      "environment": {
-        "MCP_WEB_HOST": "127.0.0.1",
-        "MCP_WEB_PORT": "8765",
-        "MCP_DEBUG": "false"
-      }
     }
   }
 }
@@ -60,15 +49,6 @@ OpenCode 使用以下 JSON 格式配置 MCP 服务器:
 - **描述**: 提供结构化思考功能,帮助 AI 进行逐步推理
 - **依赖**: 需要 Node.js 和 npx
 
-#### mcp-feedback-enhanced
-- **类型**: `local` (本地服务器)
-- **命令**: `uvx mcp-feedback-enhanced@latest`
-- **描述**: 提供交互式反馈界面,支持 Web UI 和桌面应用
-- **依赖**: 需要 Python 和 uvx
-- **环境变量**:
-  - `MCP_WEB_HOST`: Web 服务器主机地址 (默认: 127.0.0.1)
-  - `MCP_WEB_PORT`: Web 服务器端口 (默认: 8765)
-  - `MCP_DEBUG`: 调试模式 (默认: false)
 
 ### 验证配置
 
@@ -89,10 +69,7 @@ opencode mcp list
 ●  ✓ sequential-thinking  connected
 │      npx -y @modelcontextprotocol/server-sequential-thinking
 │
-●  ✓ mcp-feedback-enhanced  connected
-│      uvx mcp-feedback-enhanced@latest
-│
-└  3 server(s)
+└  2 server(s)
 ```
 
 ## Cursor MCP 配置
@@ -116,12 +93,6 @@ Cursor 使用以下 JSON 格式配置 MCP 服务器:
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
       "autoApprove": ["sequentialthinking"]
-    },
-    "mcp-feedback-enhanced": {
-      "command": "uvx",
-      "args": ["mcp-feedback-enhanced@latest"],
-      "timeout": 600,
-      "autoApprove": ["interactive_feedback"]
     }
   }
 }
@@ -137,12 +108,6 @@ Cursor 使用以下 JSON 格式配置 MCP 服务器:
 - **命令**: `npx -y @modelcontextprotocol/server-sequential-thinking`
 - **自动批准**: `["sequentialthinking"]`
 - **描述**: 提供结构化思考功能
-
-#### mcp-feedback-enhanced
-- **命令**: `uvx mcp-feedback-enhanced@latest`
-- **超时**: 600 秒
-- **自动批准**: `["interactive_feedback"]`
-- **描述**: 提供交互式反馈界面
 
 ## 自动安装脚本
 
@@ -228,7 +193,6 @@ A: OpenCode: `opencode mcp list`
 - [OpenCode MCP 文档](https://opencode.ai/docs/mcp-servers/)
 - [Context7 文档](https://github.com/upstash/context7)
 - [Sequential Thinking 文档](https://github.com/arben-adm/mcp-sequential-thinking)
-- [MCP Feedback Enhanced 文档](https://github.com/Minidoracat/mcp-feedback-enhanced)
 
 ## 更新日志
 

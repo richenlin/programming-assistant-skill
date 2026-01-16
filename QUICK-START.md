@@ -14,7 +14,7 @@
 这个命令会：
 1. ✅ 安装到 OpenCode（全局）
 2. ✅ 安装到 Cursor（全局规则）
-3. ✅ 配置 MCP 服务器（context7, sequential-thinking, mcp-feedback-enhanced）
+3. ✅ 配置 MCP 服务器（context7, sequential-thinking）
 4. ✅ 验证安装结果
 
 **安装完成后，重启 OpenCode 和 Cursor 即可使用！**
@@ -73,10 +73,6 @@ cat > ~/.config/opencode/opencode.json << 'EOF'
     "sequential-thinking": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
-    },
-    "mcp-feedback-enhanced": {
-      "command": "uvx",
-      "args": ["mcp-feedback-enhanced@latest"]
     }
   }
 }
@@ -249,10 +245,6 @@ cat > ~/.config/opencode/opencode.json << 'EOF'
     "sequential-thinking": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
-    },
-    "mcp-feedback-enhanced": {
-      "command": "uvx",
-      "args": ["mcp-feedback-enhanced@latest"]
     }
   }
 }
@@ -402,11 +394,6 @@ project/
 - **何时使用**: 需要深入思考或拆解复杂任务时
 - **示例**: "使用sequential-thinking分析如何设计高并发的订单系统"
 
-### mcp-feedback-enhanced
-- **用途**: 与用户交互，获取反馈
-- **何时使用**: 需要确认理解或展示进度时
-- **示例**: "使用mcp-feedback-enhanced向用户展示设计原型"
-
 ## 常见问题
 
 ### Q: 如何更新skill？
@@ -457,7 +444,6 @@ templates/                        # 模板文件目录
    ```bash
    opencode mcp add context7 npx -y @upstash/context7-mcp
    opencode mcp add sequential-thinking npx -y @modelcontextprotocol/server-sequential-thinking
-   opencode mcp add mcp-feedback-enhanced uvx mcp-feedback-enhanced@latest
    ```
 
 ### 技能提升

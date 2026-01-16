@@ -3,7 +3,7 @@
 
 ## 概述
 
-这是一个专业的编程助手skill，基于ZhiSi Architect方法论，支持全栈开发和架构设计。该skill集成了Context7、sequential-thinking和mcp-feedback-enhanced等MCP工具，能够在 **OpenCode**、**Claude Code** 和 **Cursor** 中使用。
+这是一个专业的编程助手skill，基于ZhiSi Architect方法论，支持全栈开发和架构设计。该skill集成了Context7、sequential-thinking等MCP工具，能够在 **OpenCode**、**Claude Code** 和 **Cursor** 中使用。
 
 ## 核心特性
 
@@ -20,8 +20,6 @@
 ### MCP工具集成
 - **Context7**: 获取最新文档和代码示例
 - **sequential-thinking**: 深度分析和问题拆解
-- **mcp-feedback-enhanced**: 用户交互和反馈
-
 
 ## 快速开始
 
@@ -36,7 +34,7 @@
 1. ✅ 安装到 OpenCode（全局 skill）
 2. ✅ 安装到 Claude Code（全局 skill）
 3. ✅ 安装到 Cursor（全局规则）
-4. ✅ 配置 MCP 服务器（context7, sequential-thinking, mcp-feedback-enhanced）
+4. ✅ 配置 MCP 服务器（context7, sequential-thinking）
 5. ✅ 验证安装结果
 
 **完成后重启相应的 IDE/CLI 即可使用！**
@@ -84,7 +82,6 @@
   1. 读取项目根目录的 SOLUTION.md 和 TASK.md（如果存在）
   2. 如果文件不存在：
      - 使用 sequential-thinking MCP 分析需求
-     - 使用 mcp-feedback-enhanced 与用户确认理解
      - 生成 SOLUTION.md 架构文档
      - 将 SOLUTION.md 拆解成 TASK.md 任务列表（包含实现步骤、技术选型、代码片段）
   3. 将 TASK.md 转化为 feature_list.json（只包含任务基本信息和状态）
@@ -101,9 +98,8 @@
 流程:
   1. 深入理解需求，从用户角度思考
   2. 使用 sequential-thinking 分析需求完整性
-  3. 使用 mcp-feedback-enhanced 与用户确认理解
-  4. 识别缺失需求或缺口，与用户讨论完善
-  5. 选择最简单的解决方案，避免过度工程化
+  3. 识别缺失需求或缺口，与用户讨论完善
+  4. 选择最简单的解决方案，避免过度工程化
 输出: 需求确认和技术方案
 ```
 
@@ -117,7 +113,6 @@
   4. 编写符合规范的代码（精确、模块化、可测试）
   5. 运行测试验证功能
   6. 确认不破坏现有功能
-  7. 使用 mcp-feedback-enhanced 获取用户反馈
 输出: 可测试的代码单元
 ```
 ### 问题解决
@@ -153,7 +148,6 @@
 1. 检查 SOLUTION.md 和 TASK.md 是否存在
 2. 如果不存在：
    - 使用 sequential-thinking MCP 分析需求
-   - 使用 mcp-feedback-enhanced 与你确认功能列表
    - 生成 SOLUTION.md 架构文档
    - 将 SOLUTION.md 拆解成 TASK.md 任务列表
 3. 创建 progress.txt 和 feature_list.json
@@ -233,7 +227,6 @@
 ```
 1. 需求分析
    ↓ sequential-thinking (深度分析)
-   ↓ mcp-feedback-enhanced (用户确认)
 
 2. 技术调研
    ↓ Context7 (文档查询)
@@ -249,7 +242,7 @@
    ↓ lsp_diagnostics (代码检查)
 
 5. 用户交互
-   ↓ mcp-feedback-enhanced (获取反馈)
+   ↓ todoread (获取反馈)
    ↓ todowrite (进度跟踪)
 ```
 
