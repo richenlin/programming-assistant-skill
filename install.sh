@@ -27,7 +27,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
-VERSION="1.2.1"
+VERSION="1.3.0"
 
 # OpenCode 路径（官方文档：https://opencode.ai/docs/skills/）
 # OpenCode 支持两种路径：~/.config/opencode/skill/ 和 ~/.claude/skills/（Claude兼容）
@@ -292,7 +292,8 @@ configure_opencode_mcp() {
         return 0
     fi
 
-    local opencode_mcp_file="$HOME/.config/opencode/mcp.json"
+    # OpenCode 使用 ~/.config/opencode/opencode.json 配置文件
+    local opencode_config_file="$HOME/.config/opencode/opencode.json"
     local script_mcp_file="$SCRIPT_DIR/mcp-config.json"
 
     if [ ! -f "$script_mcp_file" ]; then
@@ -301,29 +302,112 @@ configure_opencode_mcp() {
     fi
 
     if [ "$DRY_RUN" = true ]; then
-        info "DRY-RUN: 将检查并创建 $opencode_mcp_file"
+        info "DRY-RUN: 将检查并更新 $opencode_config_file"
         return 0
     fi
 
-    if [ ! -f "$opencode_mcp_file" ]; then
-        info "创建 OpenCode MCP 配置文件"
-        mkdir -p "$(dirname "$opencode_mcp_file")"
-        cat > "$opencode_mcp_file" << 'EOF'
+    # 确保 opencode.json 目录存在
+    mkdir -p "$(dirname "$opencode_config_file")"
+
+    # 如果 opencode.json 不存在，创建基础配置
+    if [ ! -f "$opencode_config_file" ]; then
+        info "创建 OpenCode 配置文件"
+        cat > "$opencode_config_file" << 'EOF'
 {
-  "mcpServers": {}
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {}
 }
 EOF
     fi
 
-    info "请手动配置 OpenCode MCP: $opencode_mcp_file"
-    info "参考配置: $script_mcp_file"
-    info ""
-    info "需要在 $opencode_mcp_file 中添加以下 MCP 服务器:"
-    info "  - context7"
-    info "  - sequential-thinking"
-    info "  - mcp-feedback-enhanced"
+    info "添加 MCP 配置到: $opencode_config_file"
 
-    success "OpenCode MCP 配置指南完成"
+    # 使用 Python 脚本来合并 JSON 配置
+    python3 << 'PYTHON_SCRIPT'
+import json
+import os
+
+config_file = os.path.expanduser("~/.config/opencode/opencode.json")
+mcp_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mcp-config.json")
+
+# 读取现有配置
+try:
+    with open(config_file, 'r') as f:
+        config = json.load(f)
+except Exception as e:
+    print(f"读取配置文件失败: {e}")
+    exit(1)
+
+# 读取MCP配置
+try:
+    with open(mcp_file, 'r') as f:
+        mcp_config = json.load(f)
+except Exception as e:
+    print(f"读取MCP配置失败: {e}")
+    exit(1)
+
+# 转换 MCP 配置格式
+# Cursor 格式: mcpServers -> { name: { command, args } }
+# OpenCode 格式: mcp -> { name: { type, command (array), environment } }
+opencode_mcp = {}
+
+# context7 - 远程服务器
+if "context7" in mcp_config.get("mcpServers", {}):
+    opencode_mcp["context7"] = {
+        "type": "remote",
+        "url": "https://mcp.context7.com/mcp"
+    }
+
+# sequential-thinking - 本地服务器 (使用 npx)
+if "sequential-thinking" in mcp_config.get("mcpServers", {}):
+    st_config = mcp_config["mcpServers"]["sequential-thinking"]
+    opencode_mcp["sequential-thinking"] = {
+        "type": "local",
+        "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
+        "enabled": True
+    }
+
+# mcp-feedback-enhanced - 本地服务器 (使用 uvx)
+if "mcp-feedback-enhanced" in mcp_config.get("mcpServers", {}):
+    mfe_config = mcp_config["mcpServers"]["mcp-feedback-enhanced"]
+    opencode_mcp["mcp-feedback-enhanced"] = {
+        "type": "local",
+        "command": ["uvx", "mcp-feedback-enhanced@latest"],
+        "enabled": True,
+        "environment": {
+            "MCP_WEB_HOST": "127.0.0.1",
+            "MCP_WEB_PORT": "8765",
+            "MCP_DEBUG": "false"
+        }
+    }
+
+# 合并到主配置
+if "mcp" not in config:
+    config["mcp"] = {}
+
+# 添加或更新MCP配置
+for name, mcp_config in opencode_mcp.items():
+    if name in config["mcp"]:
+        print(f"更新MCP配置: {name}")
+    else:
+        print(f"添加MCP配置: {name}")
+    config["mcp"][name] = mcp_config
+
+# 备份原文件
+backup_file = f"{config_file}.backup.{os.popen('date +%Y%m%d_%H%M%S').read().strip()}"
+with open(backup_file, 'w') as f:
+    json.dump(config, f, indent=2)
+print(f"已备份到: {backup_file}")
+
+# 写入新配置
+with open(config_file, 'w') as f:
+    json.dump(config, f, indent=2)
+
+print("OpenCode MCP 配置完成")
+PYTHON_SCRIPT
+
+    success "OpenCode MCP 配置完成"
+    info "配置的服务器: context7, sequential-thinking, mcp-feedback-enhanced"
 }
 
 verify_opencode() {
@@ -348,12 +432,40 @@ verify_opencode() {
         return 1
     fi
 
-    local opencode_mcp_file="$HOME/.config/opencode/mcp.json"
-    if [ -f "$opencode_mcp_file" ]; then
-        info "✓ MCP 配置文件存在: $opencode_mcp_file"
-        info "  请手动验证 MCP 服务器配置"
+    # 验证 MCP 配置
+    local opencode_config_file="$HOME/.config/opencode/opencode.json"
+    if [ -f "$opencode_config_file" ]; then
+        info "✓ 配置文件存在: $opencode_config_file"
+
+        # 检查 MCP 配置
+        if command -v python3 >/dev/null 2>&1; then
+            local mcp_count=$(python3 -c "
+import json
+try:
+    with open('$opencode_config_file', 'r') as f:
+        config = json.load(f)
+    mcp_servers = config.get('mcp', {})
+    count = 0
+    if 'context7' in mcp_servers: count += 1
+    if 'sequential-thinking' in mcp_servers: count += 1
+    if 'mcp-feedback-enhanced' in mcp_servers: count += 1
+    print(count)
+except:
+    print(0)
+" 2>/dev/null || echo "0")
+
+            if [ "$mcp_count" -eq 3 ]; then
+                info "✓ MCP 配置完整 (3/3)"
+            elif [ "$mcp_count" -gt 0 ]; then
+                warn "MCP 配置部分完成 ($mcp_count/3)"
+            else
+                warn "未检测到 MCP 配置"
+            fi
+        else
+            warn "需要 Python3 来验证 MCP 配置"
+        fi
     else
-        warn "MCP 配置文件不存在，请手动配置"
+        warn "配置文件不存在: $opencode_config_file"
     fi
 
     success "OpenCode 验证完成"
@@ -481,7 +593,7 @@ configure_cursor_mcp() {
         return 0
     fi
 
-    # Cursor MCP 配置在 ~/.cursor/mcp.json，不是 ~/.claude/
+    # Cursor MCP 配置在 ~/.cursor/mcp.json
     local cursor_dir="$HOME/.cursor"
     if [ ! -d "$cursor_dir" ]; then
         warn "Cursor 目录不存在，跳过 MCP 配置"
@@ -504,6 +616,7 @@ configure_cursor_mcp() {
     # 如果 mcp.json 不存在，创建它
     if [ ! -f "$cursor_mcp_file" ]; then
         info "创建 Cursor MCP 配置文件"
+        mkdir -p "$(dirname "$cursor_mcp_file")"
         cat > "$cursor_mcp_file" << 'EOF'
 {
   "mcpServers": {}
@@ -511,10 +624,59 @@ configure_cursor_mcp() {
 EOF
     fi
 
-    info "请检查 Cursor MCP 配置: $cursor_mcp_file"
-    info "参考配置: $script_mcp_file"
+    info "添加 MCP 配置到: $cursor_mcp_file"
 
-    success "Cursor MCP 配置指南完成"
+    # 使用 Python 脚本来合并 JSON 配置
+    python3 << 'PYTHON_SCRIPT'
+import json
+import os
+
+config_file = os.path.expanduser("~/.cursor/mcp.json")
+mcp_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mcp-config.json")
+
+# 读取现有配置
+try:
+    with open(config_file, 'r') as f:
+        config = json.load(f)
+except Exception as e:
+    print(f"读取配置文件失败: {e}")
+    exit(1)
+
+# 读取MCP配置
+try:
+    with open(mcp_file, 'r') as f:
+        mcp_config = json.load(f)
+except Exception as e:
+    print(f"读取MCP配置失败: {e}")
+    exit(1)
+
+# 确保 mcpServers 存在
+if "mcpServers" not in config:
+    config["mcpServers"] = {}
+
+# 添加或更新MCP配置
+for name, mcp_config in mcp_config.get("mcpServers", {}).items():
+    if name in config["mcpServers"]:
+        print(f"更新MCP配置: {name}")
+    else:
+        print(f"添加MCP配置: {name}")
+    config["mcpServers"][name] = mcp_config
+
+# 备份原文件
+backup_file = f"{config_file}.backup.{os.popen('date +%Y%m%d_%H%M%S').read().strip()}"
+with open(backup_file, 'w') as f:
+    json.dump(config, f, indent=2)
+print(f"已备份到: {backup_file}")
+
+# 写入新配置
+with open(config_file, 'w') as f:
+    json.dump(config, f, indent=2)
+
+print("Cursor MCP 配置完成")
+PYTHON_SCRIPT
+
+    success "Cursor MCP 配置完成"
+    info "配置的服务器: context7, sequential-thinking, mcp-feedback-enhanced"
 }
 
 verify_cursor() {
@@ -532,13 +694,39 @@ verify_cursor() {
 
     info "✓ Cursor 规则文件存在: $CURSOR_RULE_FILE"
 
+    # 验证 MCP 配置
     local cursor_mcp_file="$HOME/.cursor/mcp.json"
     if [ -f "$cursor_mcp_file" ]; then
-        local mcp_count=$(grep -c "context7\|sequential-thinking\|mcp-feedback-enhanced" "$cursor_mcp_file" || echo "0")
-        if [ "$mcp_count" -ge 3 ]; then
-            info "✓ MCP 配置已设置 ($mcp_count 个)"
+        info "✓ MCP 配置文件存在: $cursor_mcp_file"
+
+        # 检查 MCP 配置
+        if command -v python3 >/dev/null 2>&1; then
+            local mcp_count=$(python3 -c "
+import json
+try:
+    with open('$cursor_mcp_file', 'r') as f:
+        config = json.load(f)
+    mcp_servers = config.get('mcpServers', {})
+    count = len(mcp_servers)
+    print(count)
+except:
+    print(0)
+" 2>/dev/null || echo "0")
+
+            if [ "$mcp_count" -ge 3 ]; then
+                info "✓ MCP 配置完整 (3/3)"
+            elif [ "$mcp_count" -gt 0 ]; then
+                warn "MCP 配置部分完成 ($mcp_count/3)"
+            else
+                warn "未检测到 MCP 配置"
+            fi
         else
-            warn "MCP 配置未完全设置 ($mcp_count/3)"
+            local mcp_count=$(grep -c "context7\|sequential-thinking\|mcp-feedback-enhanced" "$cursor_mcp_file" || echo "0")
+            if [ "$mcp_count" -ge 3 ]; then
+                info "✓ MCP 配置已设置 ($mcp_count 个)"
+            else
+                warn "MCP 配置未完全设置 ($mcp_count/3)"
+            fi
         fi
     else
         warn "MCP 配置文件不存在: $cursor_mcp_file"
@@ -562,7 +750,7 @@ show_help() {
     --opencode              仅安装到 OpenCode
     --claude-code           仅安装到 Claude Code
     --cursor                仅安装到 Cursor
-    --with-mcp              同时配置 MCP 服务器
+    --with-mcp              同时配置 MCP 服务器 (自动配置 context7, sequential-thinking, mcp-feedback-enhanced)
     --all                   完整安装（推荐）
     --dry-run               预览模式，不实际执行
     --uninstall             卸载已安装的 skill
@@ -570,16 +758,27 @@ show_help() {
 
 示例:
     $SCRIPT_NAME                    # 交互式安装
-    $SCRIPT_NAME --all --with-mcp   # 完整安装（推荐）
+    $SCRIPT_NAME --all --with-mcp   # 完整安装，自动配置MCP（推荐）
     $SCRIPT_NAME --opencode         # 仅安装 OpenCode
+    $SCRIPT_NAME --opencode --with-mcp  # 安装 OpenCode 并配置MCP
     $SCRIPT_NAME --claude-code      # 仅安装 Claude Code
     $SCRIPT_NAME --cursor           # 仅安装 Cursor
+    $SCRIPT_NAME --cursor --with-mcp    # 安装 Cursor 并配置MCP
     $SCRIPT_NAME --dry-run          # 预览安装
 
 安装路径:
     OpenCode:    $OPENCODE_SKILL_FILE
     Claude Code: $CLAUDE_CODE_SKILL_FILE
     Cursor:      $CURSOR_RULE_FILE
+
+MCP配置:
+    OpenCode:    ~/.config/opencode/opencode.json (mcp 字段)
+    Cursor:      ~/.cursor/mcp.json (mcpServers 字段)
+
+MCP服务器:
+    - context7: 文档搜索 (https://mcp.context7.com)
+    - sequential-thinking: 结构化思考 (@modelcontextprotocol/server-sequential-thinking)
+    - mcp-feedback-enhanced: 交互反馈 (mcp-feedback-enhanced)
 
 更多信息: https://github.com/your-org/programming-assistant-skill
 EOF

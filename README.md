@@ -29,14 +29,14 @@
 
 ```bash
 # 完整安装（OpenCode + Claude Code + Cursor + MCP）
-./install.sh --all --mcp-auto
+./install.sh --all --with-mcp
 ```
 
 这将自动：
 1. ✅ 安装到 OpenCode（全局 skill）
 2. ✅ 安装到 Claude Code（全局 skill）
 3. ✅ 安装到 Cursor（全局规则）
-4. ✅ 配置 MCP 服务器
+4. ✅ 配置 MCP 服务器（context7, sequential-thinking, mcp-feedback-enhanced）
 5. ✅ 验证安装结果
 
 **完成后重启相应的 IDE/CLI 即可使用！**
@@ -69,7 +69,9 @@
 
 - **快速开始**: [QUICK-START.md](QUICK-START.md)
 - **Skill 详细说明**: [SKILL.md](SKILL.md)
+- **MCP 安装详解**: [MCP-INSTALL.md](MCP-INSTALL.md)
 - **OpenCode 配置**: [OpenCode Skills 官方文档](https://opencode.ai/docs/skills/)
+- **OpenCode MCP 文档**: [OpenCode MCP 服务器文档](https://opencode.ai/docs/mcp-servers/)
 - **Claude Code 配置**: [Claude Code Skills 官方文档](https://docs.anthropic.com/en/docs/claude-code/skills)
 
 
@@ -295,6 +297,16 @@
 4. 向用户报告问题，寻求指导
 
 ## 版本历史
+
+### v1.3.0 (2025-01-16)
+- 添加自动 MCP 配置功能
+- 支持 OpenCode 的 MCP 配置（~/.config/opencode/opencode.json）
+- 支持 Cursor 的 MCP 配置（~/.cursor/mcp.json）
+- 智能合并配置,不覆盖现有配置
+- 自动备份原配置文件
+- 添加 MCP 配置验证功能
+- 创建详细的 MCP 安装文档（MCP-INSTALL.md）
+- 修正安装脚本参数为 --with-mcp
 
 ### v1.2.1 (2025-01-16)
 - 修复OpenCode skill未生效问题 - triggers字段已在metadata中
