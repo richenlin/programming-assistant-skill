@@ -44,8 +44,10 @@ CURSOR_DIR="$HOME/.cursor"
 CURSOR_RULES_DIR="$CURSOR_DIR/rules"
 CURSOR_RULE_FILE="$CURSOR_RULES_DIR/programming-assistant.md"
 
-# 备份目录
-BACKUP_DIR="$SCRIPT_DIR/.backup"
+# 备份目录（按源目录分类，与 install.sh 保持一致）
+OPENCODE_BACKUP_DIR="$HOME/.config/opencode/skill/.backup"
+CLAUDE_CODE_BACKUP_DIR="$HOME/.claude/skills/.backup"
+CURSOR_BACKUP_DIR="$HOME/.cursor/rules/.backup"
 BACKUP_TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
 # 颜色输出
@@ -106,11 +108,27 @@ confirm() {
 }
 
 # 创建备份
+# 参数: $1 - 要备份的文件, $2 - 备份类型 (opencode|claude_code|cursor)
 backup_file() {
     local file="$1"
+    local backup_type="${2:-opencode}"
+    
     if [ -e "$file" ]; then
-        mkdir -p "$BACKUP_DIR"
-        local backup_file="$BACKUP_DIR/$(basename "$file").$BACKUP_TIMESTAMP"
+        local backup_dir
+        case "$backup_type" in
+            cursor)
+                backup_dir="$CURSOR_BACKUP_DIR"
+                ;;
+            claude_code)
+                backup_dir="$CLAUDE_CODE_BACKUP_DIR"
+                ;;
+            *)
+                backup_dir="$OPENCODE_BACKUP_DIR"
+                ;;
+        esac
+        
+        mkdir -p "$backup_dir"
+        local backup_file="$backup_dir/$(basename "$file").$BACKUP_TIMESTAMP"
         cp -r "$file" "$backup_file"
         info "已备份: $file -> $backup_file"
     fi
@@ -138,7 +156,7 @@ uninstall_opencode_skill() {
         return 1
     fi
 
-    backup_file "$OPENCODE_SKILL_DIR"
+    backup_file "$OPENCODE_SKILL_DIR" "opencode"
     rm -rf "$OPENCODE_SKILL_DIR"
 
     success "OpenCode Skill 已卸载"
@@ -166,7 +184,7 @@ uninstall_claude_code_skill() {
         return 1
     fi
 
-    backup_file "$CLAUDE_CODE_SKILL_DIR"
+    backup_file "$CLAUDE_CODE_SKILL_DIR" "claude_code"
     rm -rf "$CLAUDE_CODE_SKILL_DIR"
 
     success "Claude Code Skill 已卸载"
@@ -219,7 +237,7 @@ uninstall_cursor_skill() {
     fi
 
     # 备份
-    backup_file "$CURSOR_RULE_FILE"
+    backup_file "$CURSOR_RULE_FILE" "cursor"
 
     # 删除
     rm -f "$CURSOR_RULE_FILE"
@@ -286,7 +304,7 @@ show_help() {
     $SCRIPT_NAME --dry-run          # 预览卸载
 
 警告:
-    卸载操作不可逆，所有删除的文件将备份到: $BACKUP_DIR
+    卸载操作不可逆，所有删除的文件将备份到对应的安装目录下的 .backup 文件夹
 
 更多信息: https://github.com/your-org/programming-assistant-skill
 EOF
@@ -351,7 +369,10 @@ main() {
     fi
 
     warn "此操作将删除已安装的 skill 文件"
-    info "所有删除的文件将备份到: $BACKUP_DIR"
+    info "备份将保存在对应的安装目录下:"
+    info "  OpenCode:    $OPENCODE_BACKUP_DIR"
+    info "  Claude Code: $CLAUDE_CODE_BACKUP_DIR"
+    info "  Cursor:      $CURSOR_BACKUP_DIR"
     echo ""
 
     if [ "$uninstall_opencode" = false ] && [ "$uninstall_claude_code" = false ] && [ "$uninstall_cursor" = false ]; then
@@ -449,9 +470,12 @@ main() {
     separator
 
     if [ "$DRY_RUN" = false ]; then
-        info "备份位置: $BACKUP_DIR"
+        info "备份位置:"
+        info "  OpenCode:    $OPENCODE_BACKUP_DIR"
+        info "  Claude Code: $CLAUDE_CODE_BACKUP_DIR"
+        info "  Cursor:      $CURSOR_BACKUP_DIR"
         info ""
-        info "如需恢复，请使用备份文件"
+        info "如需恢复，请使用对应备份目录中的文件"
     fi
 }
 
