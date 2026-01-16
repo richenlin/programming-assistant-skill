@@ -1,13 +1,13 @@
 ---
 name: programming-assistant
-description: 全栈开发和架构设计助手。适用于开发新项目、实现功能、代码重构、问题修复、架构设计、技术方案评估。支持React/Vue/Go/Python/Node.js等技术栈。
+description: 全栈开发和架构设计助手，覆盖“开发、实现、编写代码、继续开发、问题修复、代码重构、架构设计、技术方案评估/代码审查”等场景，适用于新项目与已有代码仓库的全栈研发任务。
 license: MIT
 metadata:
   author: ZhiSi Architect
   version: "2.0.0"
   language: zh-CN
   category: development
-  triggers: ["开发", "实现", "编写代码", "架构设计", "代码重构", "问题修复", "继续开发"]
+  triggers: ["开发", "实现", "编写代码", "架构设计", "代码重构", "问题修复", "继续开发", "代码审查", "技术方案评估", "评审", "review", "检查"]
 ---
 
 # 编程助手 Skill
